@@ -31,7 +31,10 @@ async function loadAvailability(activityId, date) {
     try {
         const availability = await getAvailability(activityId, date);
         console.log("Availability data:", availability);
-        showAvailability(availability);
+
+        //Filter sold out slots
+        const availableSlots = availability.filter(slot => !slot.soldOut);
+        showAvailability(availableSlots);
     } catch (error) {
         console.error("Error loading availability:", error);
     }
