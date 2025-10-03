@@ -1,60 +1,27 @@
 console.log("App is running");
 
-// Mount til booking form
-function mount(container) {
-    // Opret en form til at indtaste information
-    const form = document.createElement("form");
+async function loadActivities() {
+    try {
+        const response = await fetch("/api/activities");
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const activities = await response.json();
 
-    // Laver inputfelter til formen
-    form.appendChild(createInput("Kundetype", "customerType"));
-    form.appendChild(createInput("Kontaktnavn", "contactName"));
-    form.appendChild(createInput("Email", "email", "email"));
-    form.appendChild(createInput("Telefonnummer", "phone", "tel"));
-    form.appendChild(createInput("Aktivitet", "activityId", "number"));
-    form.appendChild(createInput("Start", "start", "datetime-local"));
-    form.appendChild(createInput("Antal personer", "participants", "number"));
+        const container = document.getElementById("activity-list");
+        container.innerHTML = "";
 
-    // Laver en submitknap til formen
-    const submitBtn = document.createElement("button");
-    submitBtn.type = "submit";
-    submitBtn.textContent = "Book";
-    // Smider knappen på formen
-    form.appendChild(submitBtn);
+        const ul = document.createElement("ul");
+        activities.forEach(activity => {
+            const li = document.createElement("li");
+            li.textContent = `${activity.name} - ${activity.description}`;
+            ul.appendChild(li);
+        });
+    } catch (error) {
+        console.error("Kunne ikke loade aktiviteter:", error);
+    }
 
-    // Smider formen i vores container
-    container.appendChild(form);
-
-    // EventListener til submit. Kan sandsynligvis også ligge udenfor funktionen
-    form.addEventListener("submit", (e) => {
-        e.preventDefault(); // Sørger for at vi ikke reloader siden og sletter alt i formen
-        const formData = new FormData(form); // Gemmer formens data
-        const data = Object.fromEntries(formData.entries()); // Konverterer til et objekt
-        console.log("Submitted data: ", data); // Logger det i konsollen, hvis vi skal kunne tjekke det
+    document.addEventListener("DOMContentLoaded", () => {
+        loadActivities();
     });
 }
-
-// Hjælpefunktion til at oprette inputfelter til en form. Bruges i mount()
-function createInput(labelText, name, type = "text") {
-    const wrapper = document.createElement("div"); // Laver en div med DOM
-
-    const label = document.createElement("label");
-    label.textContent = labelText;
-    label.setAttribute("for", name);
-
-    const input = document.createElement("input");
-    input.type = type;
-    input.name = name;
-    input.id = name;
-
-    wrapper.appendChild(label);
-    wrapper.appendChild(document.createElement("br"));
-    wrapper.appendChild(input);
-
-    return wrapper;
-}
-
-// Mounter i HTML container
-document.addEventListener("DOMContentLoaded", () => {
-    const container = document.getElementById("booking-form");
-    mount(container);
-});
