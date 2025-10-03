@@ -1,5 +1,48 @@
 console.log("App is running");
 
+import { getAvailability } from "./api";
+
+let selectedDate = "";
+let selectedActivityId = "";
+
+
+// shows availability in the UI
+function showAvailability(availability) {
+    const resultsContainer = document.getElementById("availability-results");
+    resultsContainer.innerHTML = ""; // Clear previous results
+
+    if (!availability || availability.length === 0) {
+        resultsContainer.textContent = "No available slots.";
+        return;
+    }
+
+    const ul = document.createElement("ul"); // list to display availability
+    availability.forEach(slot => {
+        const li = document.createElement("li"); // list item for each slot
+        li.textContent = `Start: ${slot.start} | End: ${slot.end} | Capacity: ${slot.capacity} | Available: ${slot.remaining}` +
+            (slot.soldOut ? " (Sold Out)" : "");
+        ul.appendChild(li); // add list item to list
+    });
+    resultsContainer.appendChild(ul);
+}
+
+// Load availability data and display it
+async function loadAvailability(activityId, date) {
+    try {
+        const availability = await getAvailability(activityId, date);
+        console.log("Availability data:", availability);
+        showAvailability(availability);
+    } catch (error) {
+        console.error("Error loading availability:", error);
+    }
+}
+
+// Handle date change event
+function onDateChange(date){
+    selectedDate =  date;
+    loadAvailability(selectedActivityId, date);
+}
+
 // Mount til booking form
 function mount(container) {
     // Opret en form til at indtaste information
@@ -23,6 +66,16 @@ function mount(container) {
 
     // Smider formen i vores container
     container.appendChild(form);
+
+    // EventListener for activityId change
+    form.activityId.addEventListener("change", (e) => {
+        selectedActivityId = e.target.value;
+    });
+
+    // EventListener for date change
+    form.start.addEventListener("change", (e) => {
+        onDateChange(e.target.value);
+    });
 
     // EventListener til submit. Kan sandsynligvis også ligge udenfor funktionen
     form.addEventListener("submit", (e) => {
