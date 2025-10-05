@@ -1,3 +1,5 @@
+// Samler alle API-kald = GET, POST, UPDATE, PATCH, DELETE
+
 const BASE_URL = 'http://localhost:8080/api';
 
 // TODO (backend & server-side):
