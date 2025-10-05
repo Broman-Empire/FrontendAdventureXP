@@ -42,3 +42,12 @@ export async function postReservation(payload){
     }
     return response.json();
 }
+
+// Henter reservation for at vise schedule
+export async function getReservations() {
+    const response = await fetch(`${BASE_URL}/reservations`);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch reservations: ${response.statusText}`);
+    }
+    return response.json();
+}
