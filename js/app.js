@@ -1,4 +1,4 @@
-import { getAvailability } from "./api";
+import {getAvailability} from "./api";
 
 console.log("App is running");
 
@@ -120,11 +120,17 @@ function mount(container) {
     });
 
     form.addEventListener("submit", (e) => {
-        e.preventDefault();
-        const formData = new FormData(form);
-        const data = Object.fromEntries(formData.entries());
-        console.log("Submitted data:", data);
+        e.preventDefault(); // Sørger for at vi ikke reloader siden og sletter alt i formen
+        const payload = buildPayload(form);
     });
+}
+
+function buildPayload(form) {
+    const formData = new FormData(form); // Gemmer formens data
+    const data = Object.fromEntries(formData.entries()); // Konverterer til et objekt
+    console.log("Submitted data: ", data); // Logger det i konsollen, hvis vi skal kunne tjekke det
+
+    return data;
 }
 
 // Når DOM’en er klar
