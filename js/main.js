@@ -28,21 +28,9 @@ export function navigation(viewName) {
     }
 }
 
-
 // Navigationens event listeners
-
 document.addEventListener("DOMContentLoaded", () => {
 
-    // Find alle knapper i navigations-menuen på frontpage
-    const menuBtns = document.querySelectorAll("nav button")
-
-    // Hver knap skal kunne trykkes på = 'click'
-    menuBtns.forEach(btn => {
-        btn.addEventListener("click", () => {
-        const chosenView = btn.dataset.view; // Eks. booking el. admin
-        navigation(chosenView); // Navigér til valgte side
-    });
-});
     // Startvisningen er vores forside
     navigation("frontpage");
 
