@@ -44,8 +44,12 @@ export async function postReservation(payload){
 }
 
 // Henter reservation for at vise schedule
-export async function getReservations() {
-    const response = await fetch(`${BASE_URL}/reservations`);
+export async function getReservations(date) {
+    let url = `${BASE_URL}/reservations`;
+    if (date) {
+        url += `?date=${date}`; // Hvis dato er som @RequestParam i url
+    }
+    const response = await fetch(url);
     if (!response.ok) {
         throw new Error(`Failed to fetch reservations: ${response.statusText}`);
     }
