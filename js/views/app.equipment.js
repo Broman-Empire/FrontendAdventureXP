@@ -70,4 +70,30 @@ async function loadActivities() {
     }
 }
 
+// Loader Equipment for en given aktivitet
+async function loadEquipment(activityId) {
+    const container = document.getElementById("equipmentTableContainer");
+
+    try {
+        let equipmentList;
+
+        if (useMock) {
+            equipmentList = [
+                { id: 1, name: "Minigolfudstyr", totalSets: 50, usableSets: 48},
+                { id: 2, name: "Sumo Wrestling udstyr", totalSets: 20, usableSets: 20},
+                { id: 3, name: "Paintballudstyr", totalSets: 30, usableSets: 25},
+                { id: 4, name: "Gokart", totalSets: 10, usableSets: 8}
+            ];
+        } else {
+            equipmentList = await getEquipmentByActivity(activityId);
+        }
+
+        // Viser aktivitetens udstyr
+        renderEquipmentTable(equipmentList);
+    } catch (error) {
+        console.error("Fejl opstod, da der skulle hentes udstyr:", error);
+        container.innerHTML = `<p>Kunne ikke hente udstyr :(</p>`;
+    }
+}
+
 
