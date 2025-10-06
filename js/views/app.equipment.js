@@ -31,6 +31,17 @@ export async function mount(container) {
 
     // Fylder dropdown menu med Activities
     await loadActivities();
+
+    // Admin vælger en aktivitet, sker der et "skift"
+    const activitySelector = container.querySelector("#activitySelector");
+    activitySelector.addEventListener("change", async (equipment) => {
+        const activityId = equipment.target.value;
+        if (activityId) {
+            await loadEquipment(activityId);
+        } else {
+            document.getElementById("equipmentTableContainer").innerHTML = "";
+        }
+    });
 }
 
 // Hjælpemetode til at fylde aktiviteter i en dropdown menu
@@ -43,10 +54,10 @@ async function loadActivities() {
         if (useMock) {
 
             activities = [
-                {id: 1, name: "Minigolf", minAge: 8, durationMinutes: 60},
-                {id: 2, name: "Sumo Wrestling", minAge: 18, durationMinutes: 45},
-                {id: 3, name: "Paintball", minAge: 18, durationMinutes: 30},
-                {id: 4, name: "Gokart", minAge: 12, durationMinutes: 90}
+                {id: 1, name: "Minigolf"},
+                {id: 2, name: "Sumo Wrestling"},
+                {id: 3, name: "Paintball"},
+                {id: 4, name: "Gokart"}
             ];
         } else {
             activities = await getActivities(); // Henter ActivityDTO fra backend
@@ -61,7 +72,7 @@ async function loadActivities() {
 
             // Viser navn, minimumsalder og varighed
             option.value = activity.id;
-            option.textContent = `${activity.name} (${activity.durationMinutes} min, fra ${activity.minAge} år)`;
+            option.textContent = activity.name; // Viser navn på frontend
             activitySelector.appendChild(option);
         });
     } catch (error) {
@@ -70,7 +81,7 @@ async function loadActivities() {
     }
 }
 
-// Loader Equipment for en given aktivitet
+// Hjælpemetode til at hente Equipment for en given aktivitet
 async function loadEquipment(activityId) {
     const container = document.getElementById("equipmentTableContainer");
 
@@ -94,6 +105,96 @@ async function loadEquipment(activityId) {
         console.error("Fejl opstod, da der skulle hentes udstyr:", error);
         container.innerHTML = `<p>Kunne ikke hente udstyr :(</p>`;
     }
+}
+
+// Hjælpemetode til at vise Equipment i en tabel
+function renderEquipmentTable(equipmentList) {
+    const container = document.getElementById("equipmentTableContainer");
+
+    if (!equipmentList || equipmentList.length === 0) {
+        container.innerHTML = `<p>Ingen udstyr fundet for denne aktivitet.</p>`;
+        return;
+    }
+    // Bygger HTML-tabellen som en String
+    const tableHTML = `
+    <table class="equipment-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Navn</th>
+          <th>Antal sæt udstyr</th>
+          <th>Antal brugbare sæt udstyr</th>
+          <th>Handling</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${equipmentList // Itererer gennem listen af udstyr og indsætter værdier
+        .map(
+            equipment => `
+              <tr>
+                <td>${equipment.id}</td>
+                <td>${equipment.name}</td>
+                <td>${equipment.totalSets}</td>
+                <td>
+                  <input 
+                    type="number" 
+                    value="${equipment.usableSets}" 
+                    min="0" 
+                    max="${equipment.totalSets}" 
+                    data-equipmentid="${equipment.id}" 
+                    class="usableSetsInput"
+                  >
+                </td>
+                <td>
+                  <button class="save-btn" data-id="${equipment.id}">Gem</button>
+                  <button class="delete-btn" data-id="${equipment.id}">Slet</button>
+                </td>
+              </tr>
+            `
+        )
+        // .join samler rækkerne til én samlet string
+        .join("")}
+      </tbody>
+    </table>
+  `;
+
+    // Indsæt tabellen i containeren
+    container.innerHTML = tableHTML;
+
+    // Event listener for SAVE
+    container.querySelectorAll(".save-btn").forEach(saveBtn => {
+        saveBtn.addEventListener("click", async (event) => {
+            const equipmentId = event.target.dataset.id;
+            const usableSets = container.querySelector(`input[data-equipmentid="${equipmentId}"]`)
+            const newUsableSet = parseInt(usableSets.value);
+
+            try {
+                await updateEquipment(equipmentId, { usableSets: newUsableSet})
+                alert("Udstyr opdateret!");
+            } catch (error) {
+                console.error("Fejl ved opdatering af udstyr:", error);
+                alert("Udstyret kunne ikke opdateres!");
+            }
+        })
+    });
+
+    // Event listener for DELETE
+    container.querySelectorAll(".delete-btn").forEach(deleteBtn => {
+        deleteBtn.addEventListener("click", async (event) => {
+            const equipmentId = event.target.dataset.id;
+
+            if (confirm("Er du inderligt sikker på, at du vil slette dette sæt udstyr?")) {
+                try {
+                    await deleteEquipment(equipmentId);
+                    deleteBtn.closest("tr").remove();
+                    alert("Udstyret blev slettet!");
+                } catch (error) {
+                    console.error("Fejl ved sletning:", error);
+                    alert("Udstyret kunne ikke slettes!");
+                }
+            }
+        })
+    });
 }
 
 
