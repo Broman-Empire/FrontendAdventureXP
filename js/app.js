@@ -1,10 +1,56 @@
 console.log("App is running");
 
-import { getAvailability } from "./api";
+import { getAvailability } from "./api.js";
 
 let selectedDate = "";
 let selectedActivityId = "";
 
+
+// Sender reservation til backend
+async function submitReservation(reservationInfo) {
+
+    try {
+
+        // Mocker en reservation indtil backend er klar
+        const useMock = true; // Skal være false, når backend er klar
+
+        let response;
+
+        // Mock starter her
+        if (useMock) {
+            await new Promise(resolve => setTimeout(resolve, 500)); //Viser popup-bekræftelse 0,5 sek efter submit
+            response = { ok: true, json: async () => ({ id: 101, ...reservationInfo})}
+        // Mock slutter her
+
+        } else {
+            response = await fetch("/api/reservations", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(reservationInfo),
+            })
+        }
+
+        if (!response.ok) {
+            throw new Error("Kunne ikke oprette reservation");
+        }
+
+        const result = await response.json();
+
+        // Viser bekræftelses-pop-up
+        showPopup(`Reservation bekræftet! Din ordrebekræftelse har ID: ${result.id}`);
+
+    } catch (error) {
+        console.error("Fejl ved reservation:", error);
+        showPopup("Der opstod en fejl under bookingen!");
+    }
+}
+
+// Hjælpemetode for popup-besked
+function showPopup(message) {
+    alert(message);
+}
 
 // shows availability in the UI
 function showAvailability(availability) {
@@ -41,9 +87,9 @@ async function loadAvailability(activityId, date) {
 }
 
 // Handle date change event
-function onDateChange(date){
+async function onDateChange(date){
     selectedDate =  date;
-    loadAvailability(selectedActivityId, date);
+    await loadAvailability(selectedActivityId, date);
 }
 
 // Mount til booking form
@@ -81,11 +127,12 @@ function mount(container) {
     });
 
     // EventListener til submit. Kan sandsynligvis også ligge udenfor funktionen
-    form.addEventListener("submit", (e) => {
+    form.addEventListener("submit",  async(e) => {
         e.preventDefault(); // Sørger for at vi ikke reloader siden og sletter alt i formen
         const formData = new FormData(form); // Gemmer formens data
         const data = Object.fromEntries(formData.entries()); // Konverterer til et objekt
         console.log("Submitted data: ", data); // Logger det i konsollen, hvis vi skal kunne tjekke det
+        await submitReservation(data) // Submitter formularen med data
     });
 }
 
