@@ -8,6 +8,7 @@ const BASE_URL = 'http://localhost:8080/api';
 // - Check @PostMapping endpoint: /api/reservations
 // - Check CORS is enabled for frontend (server-side) - så backend og frontend taler sammen
 
+// ---- Activity wrappers ----
 
 // Fetch all activities
 export async function getActivities() {
@@ -18,6 +19,56 @@ export async function getActivities() {
     return response.json();
 }
 
+// Hent alle aktiviteter (admin)
+export async function getAdminActivities() {
+    const response = await fetch(`${BASE_URL}/admin/activities`);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch admin activities: ${response.statusText}`);
+    }
+    return response.json();
+}
+
+// Opret ny Activity
+export async function createActivity(activity) {
+    const response = await fetch(`${BASE_URL}/admin/activities`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(activity)
+    });
+    if (!response.ok) {
+        throw new Error(`Failed to create activity: ${response.statusText}`);
+    }
+    return response.json();
+}
+
+// Opdater aktivitet med PATCH
+export async function updateActivity(id, patch) {
+    const response = await fetch(`${BASE_URL}/admin/activities/${id}`, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(patch)
+    });
+    if (!response.ok) {
+        throw new Error(`Failed to update activity: ${response.statusText}`);
+    }
+    return response.json();
+}
+
+// Slet aktivitet
+export async function deleteActivity(id) {
+    const response = await fetch(`${BASE_URL}/admin/activities/${id}`, {
+        method: "DELETE"
+    });
+    if (!response.ok) {
+        throw new Error(`Failed to delete activity: ${response.statusText}`);
+    }
+}
+
+
 // Fetch availability for a specific activity and date
 export async function getAvailability(activityId, date) {
     const params = new URLSearchParams({ date });
@@ -27,6 +78,9 @@ export async function getAvailability(activityId, date) {
     }
     return response.json();
 }
+
+
+// ---- Reservation wrappers ----
 
 // Create a new reservation
 export async function postReservation(payload){
@@ -60,7 +114,7 @@ export async function getReservations(date) {
 
 // Henter alt Equipment for én bestemt Activity
 export async function getEquipmentByActivity(activityId) {
-    const response = await fetch(`${BASE_URL}/activities/${activityId}/equipment`)
+    const response = await fetch(`${BASE_URL}/admin/activities/${activityId}/equipment`)
     if (!response.ok) {
         throw new Error(`Failed to fetch equipment for activity ${activityId}: ${response.statusText}`)
     }
@@ -69,10 +123,10 @@ export async function getEquipmentByActivity(activityId) {
 
 // Opdaterer Equipment
 export async function updateEquipment(equipmentId, patch) {
-    const response = await fetch(`${BASE_URL}/equipment/${equipmentId}`, {
+    const response = await fetch(`${BASE_URL}/admin/equipment/${equipmentId}`, {
         method: 'PATCH',
         headers: {
-            'content-Type': 'application/json'
+            'Content-Type': 'application/json'
         },
         body: JSON.stringify(patch)
     });
@@ -85,7 +139,7 @@ export async function updateEquipment(equipmentId, patch) {
 
 // Sletter Equipment
 export async function deleteEquipment(equipmentId) {
-    const response = await fetch(`${BASE_URL}/equipment/${equipmentId}`, {
+    const response = await fetch(`${BASE_URL}/admin/equipment/${equipmentId}`, {
         method: 'DELETE',
     });
     if (!response.ok) {
