@@ -1,6 +1,8 @@
+// Bookingformular for brugeren
+
 console.log("App is running");
 
-import { getAvailability } from "./api.js";
+import { getAvailability } from "../api.js";
 
 let selectedDate = "";
 let selectedActivityId = "";
@@ -20,7 +22,7 @@ async function submitReservation(reservationInfo) {
         if (useMock) {
             await new Promise(resolve => setTimeout(resolve, 500)); //Viser popup-bekræftelse 0,5 sek efter submit
             response = { ok: true, json: async () => ({ id: 101, ...reservationInfo})}
-        // Mock slutter her
+            // Mock slutter her
 
         } else {
             response = await fetch("/api/reservations", {
@@ -33,7 +35,7 @@ async function submitReservation(reservationInfo) {
         }
 
         if (!response.ok) {
-            throw new Error("Kunne ikke oprette reservation");
+            throw new Error("Kunne ikke oprette reservation.");
         }
 
         const result = await response.json();
@@ -93,7 +95,7 @@ async function onDateChange(date){
 }
 
 // Mount til booking form
-function mount(container) {
+export function mount(container) {
     // Opret en form til at indtaste information
     const form = document.createElement("form");
 
@@ -156,8 +158,3 @@ function createInput(labelText, name, type = "text") {
     return wrapper;
 }
 
-// Mounter i HTML container
-document.addEventListener("DOMContentLoaded", () => {
-    const container = document.getElementById("booking-form");
-    mount(container);
-});
