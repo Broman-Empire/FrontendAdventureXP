@@ -55,3 +55,44 @@ export async function getReservations(date) {
     }
     return response.json();
 }
+
+// ---- Equipment wrappers ----
+
+// Henter alt Equipment for én bestemt Activity
+export async function getEquipmentByActivity(activityId) {
+    const response = await fetch(`${BASE_URL}/activities/${activityId}/equipment`)
+    if (!response.ok) {
+        throw new Error(`Failed to fetch equipment for activity ${activityId}: ${response.statusText}`)
+    }
+    return response.json();
+}
+
+// Opdaterer Equipment
+export async function updateEquipment(equipmentId, patch) {
+    const response = await fetch(`${BASE_URL}/equipment/${equipmentId}`, {
+        method: 'PATCH',
+        headers: {
+            'content-Type': 'application/json'
+        },
+        body: JSON.stringify(patch)
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to update equipment ${equipmentId}: ${response.statusText}`);
+    }
+    return response.json();
+}
+
+// Sletter Equipment
+export async function deleteEquipment(equipmentId) {
+    const response = await fetch(`${BASE_URL}/equipment/${equipmentId}`, {
+        method: 'DELETE',
+    });
+    if (!response.ok) {
+        throw new Error(`Failed to delete equipment ${equipmentId}: ${response.statusText}`);
+    }
+    return true; // En bekræftelse
+}
+
+
+
