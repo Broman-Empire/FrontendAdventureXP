@@ -1,3 +1,5 @@
+// Samler alle API-kald = GET, POST, UPDATE, PATCH, DELETE
+
 const BASE_URL = 'http://localhost:8080/api';
 
 // TODO (backend & server-side):
@@ -37,6 +39,19 @@ export async function postReservation(payload){
     });
     if (!response.ok) {
         throw new Error(`Failed to create reservation: ${response.statusText}`);
+    }
+    return response.json();
+}
+
+// Henter reservation for at vise schedule
+export async function getReservations(date) {
+    let url = `${BASE_URL}/reservations`;
+    if (date) {
+        url += `?date=${date}`; // Hvis dato er som @RequestParam i url
+    }
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch reservations: ${response.statusText}`);
     }
     return response.json();
 }
