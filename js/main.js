@@ -24,7 +24,7 @@ const views = {
 // Funktion til at skifte mellem siderne
 export function navigation(viewName) {
     const appContainer = document.getElementById("app");
-    appContainer.innerHTML = ""; // Rydder tidl. indhold
+    appContainer.innerHTML = ""; // Rydder tidligere indhold
 
     // Tjekker om view findes samt indeholder en mount-funktion
     const view = views[viewName];
