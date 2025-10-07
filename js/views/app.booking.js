@@ -1,4 +1,4 @@
-// Bookingformular for brugeren
+// ---- Bookingformular for brugeren ----
 
 console.log("App is running");
 

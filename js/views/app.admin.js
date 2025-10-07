@@ -19,14 +19,18 @@ export function mount(container) {
       </div>
 
       <div id="schedule"></div>
+      
+      <di>
+      <button data-view="equipment" class="equipment-btn">Se Udstyr</button>
+      </div>
+      
 
       <button data-view="frontpage" class="back-btn">Tilbage til Forsiden</button>
     </section>
   `;
 
-    // Event listener for "tilbage på forsiden"
-    const backBtn = container.querySelector(".back-btn");
-    backBtn.addEventListener("click", () => navigation("frontpage"));
+    // Event listener for "Se udstyr"
+    container.querySelector("[data-view='equipment']").addEventListener("click", () => navigation("equipment"));
 
     // Event listener for "indlæs skema"
     const loadScheduleBtn = container.querySelector("#loadScheduleBtn");
@@ -35,6 +39,13 @@ export function mount(container) {
         const chosenDate = dateInput.value || new Date().toISOString().split("T")[0];
         await loadSchedule(chosenDate);
     });
+
+
+    // Event listener for "tilbage på forsiden"
+    const backBtn = container.querySelector(".back-btn");
+    backBtn.addEventListener("click", () => navigation("frontpage"));
+
+
 }
 
 // Hjælpefunktion til at indlæse skema for en bestemt dato

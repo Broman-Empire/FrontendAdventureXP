@@ -4,6 +4,8 @@
 import * as frontpageView from "./views/app.frontpage.js";
 import * as bookingView from "./views/app.booking.js";
 import * as adminView from "./views/app.admin.js";
+import * as equipmentView from "./views/app.equipment.js";
+
 
 console.log("SPA AdventureXP is running!");
 
@@ -11,7 +13,8 @@ console.log("SPA AdventureXP is running!");
 const views = {
     frontpage: frontpageView,
     booking: bookingView,
-    admin: adminView
+    admin: adminView,
+    equipment: equipmentView
 };
 
 // Funktion til at skifte mellem siderne
