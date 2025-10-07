@@ -132,7 +132,12 @@ function addActivityEventListeners() {
 
             inputs.forEach(input => {
                 const field = input.dataset.field;
-                const value = input.type === "number" ? parseInt(input.value) : input.value;
+                let value = input.value;
+
+                if (input.type === "number") {
+                    value = parseInt(value);
+                }
+
                 patch[field] = value;
             });
 
