@@ -27,7 +27,9 @@ export async function mount(container) {
     const loadBtn = container.querySelector("#loadScheduleBtn");
     const dateInput = container.querySelector("#datePicker");
 
+    // Hvis brugeren vælger dato = dateInput, hvis ikke = new String med dagens dato i samme format, som input type="date"
     loadBtn.addEventListener("click", async () => {
+                                        // "T" splitter dato og klokkeslæt (ISO-format), dato ligger på indeks 0
         const chosenDate = dateInput.value || new Date().toISOString().split("T")[0];
         await loadSchedule(chosenDate);
     });
@@ -68,8 +70,11 @@ export async function loadSchedule(date) {
             ];
         } else {
             console.log("Henter rigtig data fra API.");
-            rows = await getReservations(); // Henter JSON fra backend
+            rows = await getReservations(date); // Henter JSON fra backend
         }
+
+        // Sorterer efter tid
+        rows.sort((a, b) => new Date(a.startsAt) - new Date(b.startsAt));
 
         renderSchedule(rows); //Indsætter i html-tabel
 
