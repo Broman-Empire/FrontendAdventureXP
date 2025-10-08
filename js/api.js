@@ -138,6 +138,37 @@ export async function getReservations(date) {
     return response.json();
 }
 
+// Henter reservation med ID (admin) – bruges af openEdit(reservationId)
+export async function getReservationById(reservationId) {
+    const res = await fetch(`${BASE_URL}/admin/reservations/${reservationId}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+    });
+    if (!res.ok) {
+        const t = await res.text().catch(() => '');
+        throw new Error(`Failed to fetch reservation ${reservationId}. ${res.status} ${res.statusText}. ${t}`);
+    }
+    return res.json();
+}
+
+// Opdaterer reservation (admin) – bruges af applyUpdate(reservationId, updateBody)
+export async function updateReservation(updateBody) {
+    const res = await fetch(`${BASE_URL}/admin/reservations/${updateBody.reservationId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateBody)
+    });
+    if (!res.ok) {
+        const t = await res.text().catch(() => '');
+        throw new Error(`Failed to update reservation ${updateBody.reservationId}. ${res.status} ${res.statusText}. ${t}`);
+    }
+    try {
+        return await res.json();    // 200 OK
+    } catch {
+        return true;                // 204 No Content
+    }
+}
+
 // TODO Vi skal lige finde ud af, hvornår vi loader aktiviteterne
 // // Når DOM’en er klar
 // document.addEventListener("DOMContentLoaded", async () => {
