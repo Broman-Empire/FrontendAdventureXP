@@ -4,7 +4,9 @@
 import * as frontpageView from "./views/app.frontpage.js";
 import * as bookingView from "./views/app.booking.js";
 import * as adminView from "./views/app.admin.js";
-import * as equipmentView from "./views/app.equipment.js";
+import * as equipmentView from "./views/app.equipment.admin.js";
+import * as scheduleView from "./views/app.schedule.admin.js";
+import * as activityView from "./views/app.activity.admin.js";
 
 
 console.log("SPA AdventureXP is running!");
@@ -14,13 +16,15 @@ const views = {
     frontpage: frontpageView,
     booking: bookingView,
     admin: adminView,
-    equipment: equipmentView
+    equipment: equipmentView,
+    schedule: scheduleView,
+    activities: activityView
 };
 
 // Funktion til at skifte mellem siderne
 export function navigation(viewName) {
     const appContainer = document.getElementById("app");
-    appContainer.innerHTML = ""; // Rydder tidl. indhold
+    appContainer.innerHTML = ""; // Rydder tidligere indhold
 
     // Tjekker om view findes samt indeholder en mount-funktion
     const view = views[viewName];
