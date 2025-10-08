@@ -1,0 +1,12 @@
+.card{
+    background: var(--surface);
+    border:1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow:hidden;
+}
+
+.card__header,
+.card__footer{ padding: .9rem 1rem; background: var(--surface-2); }
+.card__body{ padding: 1rem; }
+.card__title{ margin:0; font-size: var(--fs-20); }
