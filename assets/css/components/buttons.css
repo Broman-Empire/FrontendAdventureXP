@@ -1,0 +1,35 @@
+.btn{
+    display:inline-flex; align-items:center; justify-content:center;
+    gap:.5rem;
+    padding:.625rem 1rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--color-text);
+    cursor:pointer;
+    transition: transform .08s ease, background .2s ease, border-color .2s ease;
+    text-align:center; user-select:none;
+}
+
+.btn:hover{ background: var(--surface-2); border-color:#3a3f45; }
+.btn:active{ transform: translateY(1px) scale(.995); }
+
+/* Variants */
+.btn--primary{
+    background: var(--primary);
+    border-color: transparent;
+    color:#0a0f0c;
+}
+.btn--primary:hover{ background: var(--primary-700); }
+
+.btn--ghost{
+    background: transparent;
+    border-color: var(--primary);
+    color: var(--primary);
+}
+.btn--ghost:hover{ background: rgba(0,208,126,.08); }
+
+/* Sizes */
+.btn--sm{ padding:.45rem .75rem; font-size: var(--fs-14); }
+.btn--lg{ padding:.8rem 1.25rem; font-size: var(--fs-20); }
+.btn--block{ display:flex; width:100%; }
