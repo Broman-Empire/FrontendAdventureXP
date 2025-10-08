@@ -138,6 +138,18 @@ export async function getReservations(date) {
     return response.json();
 }
 
+// Slet reservation (admin)
+export async function deleteReservation(reservationId) {
+    const res = await fetch(`${BASE_URL}/admin/reservations/${reservationId}`, {
+        method: 'DELETE'
+    });
+    if (!res.ok) {
+        const t = await res.text().catch(() => '');
+        throw new Error(`Failed to delete reservation ${reservationId}. ${res.status} ${res.statusText}. ${t}`);
+    }
+    return true;
+}
+
 // Henter reservation med ID (admin) – bruges af openEdit(reservationId)
 export async function getReservationById(reservationId) {
     const res = await fetch(`${BASE_URL}/admin/reservations/${reservationId}`, {

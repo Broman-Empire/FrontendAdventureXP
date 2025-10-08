@@ -23,7 +23,7 @@ export function mount(container) {
     const dateInput  = container.querySelector("#datePicker");
     const btnRefresh = container.querySelector("#btnRefresh");
 
-    // default: i dag
+
     dateInput.value = new Date().toISOString().slice(0, 10);
 
     const reload = async () => {
@@ -128,5 +128,41 @@ export async function applyUpdate(reservationId, updateBody) {
         alert("Kunne ikke opdatere reservationen. Tjek felterne og prøv igen.");
     } finally {
         if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = originalText; }
+    }
+
+    // ---- DELETE + genindlæs ----
+    export async function deleteReservation(reservationId) {
+        // (valgfrit) sikkerheds-prompt
+        const ok = confirm(`Slet reservation #${reservationId}?`);
+        if (!ok) return;
+
+        // Hvis der slettes fra modal, luk efter slet
+        const modal = document.getElementById("editModal");
+        const submitBtn = document.querySelector('#editReservationForm button[type="submit"]');
+        const origText  = submitBtn?.textContent;
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Sletter..."; }
+
+        try {
+            await apiDeleteReservation(reservationId);
+            if (modal) modal.style.display = "none";
+
+            // Genindlæs oversigten (samme mønster som applyUpdate)
+            if (typeof window.refreshReservations === "function") {
+                await window.refreshReservations();
+            } else if (typeof window.loadReservationsForDate === "function") {
+                const selectedDate = document.querySelector('#datePicker')?.value;
+                await window.loadReservationsForDate(selectedDate);
+            } else if (typeof window.searchReservations === "function") {
+                await window.searchReservations();
+            } else {
+                window.location.reload();
+            }
+
+        } catch (err) {
+            console.error(err);
+            alert("Kunne ikke slette reservationen.");
+        } finally {
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = origText; }
+        }
     }
 }
