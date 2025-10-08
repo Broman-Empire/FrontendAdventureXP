@@ -7,7 +7,7 @@ import * as adminView from "./views/app.admin.js";
 import * as equipmentView from "./views/app.equipment.admin.js";
 import * as scheduleView from "./views/app.schedule.admin.js";
 import * as activityView from "./views/app.activity.admin.js";
-import * as reservationsView from "./views/app.reservationsView";
+import * as reservationsView from "./views/app.reservationsView.js";
 
 
 console.log("SPA AdventureXP is running!");
@@ -20,7 +20,7 @@ const views = {
     equipment: equipmentView,
     schedule: scheduleView,
     activities: activityView,
-    reservationsView: reservationsView, // Genbruger booking view til at vise reservationer i admin
+    reservationsView: reservationsView
 };
 
 // Funktion til at skifte mellem siderne
