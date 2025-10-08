@@ -19,6 +19,27 @@ export async function getActivities() {
     return response.json();
 }
 
+// Loader aktiviteter fra backend
+async function loadActivities() {
+    const activities = await getActivities();
+
+    // Vis aktiviteter i UI
+    const container = document.getElementById("activity-list");
+    container.innerHTML = "";
+
+    const ul = document.createElement("ul");
+    activities.forEach(activity => {
+        const li = document.createElement("li");
+        li.textContent = `${activity.name} - ${activity.description}`;
+        ul.appendChild(li);
+    });
+    container.appendChild(ul);
+
+    // returner aktiviteter så mount() kan bruge dem, hvis nødvendigt
+    return activities;
+}
+
+
 // Hent alle aktiviteter (admin)
 export async function getAdminActivities() {
     const response = await fetch(`${BASE_URL}/admin/activities`);
@@ -69,6 +90,7 @@ export async function deleteActivity(id) {
 }
 
 
+
 // Fetch availability for a specific activity and date
 export async function getAvailability(activityId, fromDate, toDate, openTime, closeTime) {
     const params = new URLSearchParams({
@@ -89,7 +111,7 @@ export async function getAvailability(activityId, fromDate, toDate, openTime, cl
 // ---- Reservation wrappers ----
 
 // Create a new reservation
-export async function postReservation(payload){
+export async function postReservation(payload) {
     const response = await fetch(`${BASE_URL}/reservations`, {
         method: 'POST',
         headers: {
@@ -115,6 +137,14 @@ export async function getReservations(date) {
     }
     return response.json();
 }
+
+// TODO Vi skal lige finde ud af, hvornår vi loader aktiviteterne
+// // Når DOM’en er klar
+// document.addEventListener("DOMContentLoaded", async () => {
+//     const container = document.getElementById("app");
+//     mount(container);
+//     await loadActivities();
+// });
 
 // ---- Equipment wrappers ----
 
@@ -153,6 +183,3 @@ export async function deleteEquipment(equipmentId) {
     }
     return true; // En bekræftelse
 }
-
-
-
