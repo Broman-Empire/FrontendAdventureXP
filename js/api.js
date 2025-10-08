@@ -135,18 +135,6 @@ export async function getReservations(date) {
     return response.json();
 }
 
-// Slet reservation (admin)
-export async function deleteReservation(reservationId) {
-    const res = await fetch(`${BASE_URL}/admin/reservations/${reservationId}`, {
-        method: 'DELETE'
-    });
-    if (!res.ok) {
-        const t = await res.text().catch(() => '');
-        throw new Error(`Failed to delete reservation ${reservationId}. ${res.status} ${res.statusText}. ${t}`);
-    }
-    return true;
-}
-
 // Henter reservation med ID (admin) – bruges af openEdit(reservationId)
 export async function getReservationById(reservationId) {
     const res = await fetch(`${BASE_URL}/admin/reservations/${reservationId}`, {
@@ -178,13 +166,31 @@ export async function updateReservation(updateBody) {
     }
 }
 
-// TODO Vi skal lige finde ud af, hvornår vi loader aktiviteterne
-// // Når DOM’en er klar
-// document.addEventListener("DOMContentLoaded", async () => {
-//     const container = document.getElementById("app");
-//     mount(container);
-//     await loadActivities();
-// });
+// Slet reservation (admin)
+export async function deleteReservation(reservationId) {
+    const res = await fetch(`${BASE_URL}/admin/reservations/${reservationId}`, {
+        method: 'DELETE'
+    });
+    if (!res.ok) {
+        const t = await res.text().catch(() => '');
+        throw new Error(`Failed to delete reservation ${reservationId}. ${res.status} ${res.statusText}. ${t}`);
+    }
+    return true;
+}
+
+// ADMIN: hent dags-skema
+export async function getSchedule(date) {
+    if (!date) throw new Error("getSchedule(date) kræver YYYY-MM-DD");
+    const res = await fetch(`${BASE_URL}/admin/reservations?date=${encodeURIComponent(date)}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" }
+    });
+    if (!res.ok) {
+        const t = await res.text().catch(() => "");
+        throw new Error(`Failed to load schedule for ${date}. ${res.status} ${res.statusText}. ${t}`);
+    }
+    return res.json();
+}
 
 // Find reservation via telefonummer
 export async function searchReservation(phone) {
