@@ -89,8 +89,6 @@ export async function deleteActivity(id) {
     }
 }
 
-
-
 // Fetch availability for a specific activity and date
 export async function getAvailability(activityId, date) {
     const params = new URLSearchParams({date});
@@ -101,11 +99,10 @@ export async function getAvailability(activityId, date) {
     return response.json();
 }
 
-
 // ---- Reservation wrappers ----
 
 // Create a new reservation
-export async function postReservation(payload) {
+export async function postReservation(payload){
     const response = await fetch(`${BASE_URL}/reservations`, {
         method: 'POST',
         headers: {
@@ -121,7 +118,7 @@ export async function postReservation(payload) {
 
 // Henter reservation for at vise schedule
 export async function getReservations(date) {
-    let url = `${BASE_URL}/reservations`;
+    let url = `${BASE_URL}/admin/reservations`;
     if (date) {
         url += `?date=${date}`; // Hvis dato er som @RequestParam i url
     }
@@ -139,6 +136,43 @@ export async function getReservations(date) {
 //     mount(container);
 //     await loadActivities();
 // });
+
+// Find reservation via telefonummer
+export async function searchReservation(phone) {
+    const param = new URLSearchParams({ phone });
+    const response = await fetch(`${BASE_URL}/admin/search?${param}`);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch reservation by phone: ${response.statusText}`);
+    }
+    return response.json();
+}
+
+// Opdater en eksisterende reservation (delvist)
+export async function patchReservation(reservationId, patch) {
+    const response = await fetch(`${BASE_URL}/reservations/${reservationId}`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(patch)
+    });
+    if (!response.ok) {
+        throw new Error(`Failed to update reservation ${reservationId}: ${response.statusText}`);
+    }
+    return response.json();
+}
+
+// Slet en reservation 
+export async function deleteReservation(reservationId) {
+    const response = await fetch(`${BASE_URL}/admin/reservations/${reservationId}`, {
+        method: 'DELETE',
+    });
+    if (!response.ok) {
+        throw new Error(`Failed to delete reservation ${reservationId}: ${response.statusText}`);
+    }
+    return true; // En bekræftelse
+}
+
 
 // ---- Equipment wrappers ----
 
