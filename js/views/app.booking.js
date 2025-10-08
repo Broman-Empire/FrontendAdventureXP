@@ -131,11 +131,17 @@ export function mount(container) {
     // EventListener til submit. Kan sandsynligvis også ligge udenfor funktionen
     form.addEventListener("submit",  async(e) => {
         e.preventDefault(); // Sørger for at vi ikke reloader siden og sletter alt i formen
-        const formData = new FormData(form); // Gemmer formens data
-        const data = Object.fromEntries(formData.entries()); // Konverterer til et objekt
-        console.log("Submitted data: ", data); // Logger det i konsollen, hvis vi skal kunne tjekke det
-        await submitReservation(data) // Submitter formularen med data
+        const payload = buildPayload(form);
+        await submitReservation(payload) // Submitter formularen med data
     });
+}
+
+function buildPayload(form) {
+    const formData = new FormData(form); // Gemmer formens data
+    const data = Object.fromEntries(formData.entries()); // Konverterer til et objekt
+    console.log("Submitted data: ", data); // Logger det i konsollen, hvis vi skal kunne tjekke det
+
+    return data;
 }
 
 // Hjælpefunktion til at oprette inputfelter til en form. Bruges i mount()
