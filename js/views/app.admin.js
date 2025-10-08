@@ -10,9 +10,9 @@ export function mount(container) {
 
       <nav class="admin-menu">
         <button data-view="schedule">Skema</button>
+        <button data-view="reservations">Reservationer</button>
         <button data-view="equipment">Udstyr</button>
         <button data-view="activities">Aktiviteter</button>
-        <button data-view="reservationsView">Reservationer</button>
         <button data-view="frontpage">Forside</button>
       </nav>
     </section>

@@ -7,8 +7,7 @@ import * as adminView from "./views/app.admin.js";
 import * as equipmentView from "./views/app.equipment.admin.js";
 import * as scheduleView from "./views/app.schedule.admin.js";
 import * as activityView from "./views/app.activity.admin.js";
-import * as reservationsView from "./views/app.reservationsView.js";
-
+import * as reservationView from "./views/app.reservations.admin.js";
 
 console.log("SPA AdventureXP is running!");
 
@@ -20,7 +19,7 @@ const views = {
     equipment: equipmentView,
     schedule: scheduleView,
     activities: activityView,
-    reservationsView: reservationsView
+    reservations: reservationView
 };
 
 // Funktion til at skifte mellem siderne
