@@ -1,28 +1,16 @@
-/* ==========================================
-   FONT IMPORTS
-   - Google Fonts (Bebas Neue for headings, Inter for body text)
-   ========================================== */
+/* FONT IMPORTS */
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700&display=swap');
 
-/* ==========================================
-   CORE FOUNDATION
-   - Base styles, color palette, typography base, global variables
-   ========================================== */
+/* CORE FOUNDATION */
 @import url(./base.css);
 
-/* ==========================================
-   UI COMPONENTS
-   - Modular, reusable interface elements
-   ========================================== */
+/* UI COMPONENTS */
 @import url(./components/buttons.css);
 @import url(./components/tables.css);
 @import url(./components/cards.css);
 @import url(./components/alerts.css);
 
-/* ==========================================
-   LAYOUT & UTILITIES
-   - Structural helpers and universal spacing tools
-   ========================================== */
+/* LAYOUT & UTILITIES */
 @import url(./components/layout.css);
 @import url(./components/utilities.css);
 
