@@ -1,0 +1,32 @@
+.table{
+    width:100%;
+    border-collapse: separate;
+    border-spacing:0;
+    background: var(--surface);
+    border:1px solid var(--border);
+    border-radius: var(--radius);
+    overflow:hidden;
+}
+
+.table thead th{
+    text-align:left;
+    padding:.75rem 1rem;
+    background: var(--surface-2);
+    color: var(--color-text);
+    border-bottom:1px solid var(--border);
+    font-weight:600;
+}
+
+.table tbody td{
+    padding:.75rem 1rem;
+    border-top:1px solid var(--border);
+    color: var(--color-text);
+}
+
+.table tbody tr:hover{
+    background:#15181b;
+}
+
+.table--condensed td, .table--condensed th{
+    padding:.5rem .75rem;
+}
