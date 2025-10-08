@@ -12,6 +12,7 @@ export function mount(container) {
         <button data-view="schedule">Skema</button>
         <button data-view="equipment">Udstyr</button>
         <button data-view="activities">Aktiviteter</button>
+        <button data-view="ReservationView">Reservationer</button>
         <button data-view="frontpage">Forside</button>
       </nav>
     </section>
