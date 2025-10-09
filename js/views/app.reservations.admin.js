@@ -1,6 +1,7 @@
 // --- Admin Reservation ---
-import { searchReservation, getSchedule, deleteReservation } from "../api.js";
+import { searchReservation, getSchedule, deleteReservation , patchReservation } from "../api.js";
 import { navigation } from "../main.js";
+
 
 export async function mount(container) {
     container.innerHTML = `
@@ -29,6 +30,7 @@ export async function mount(container) {
                 <th>Telefon</th>
                 <th>Kundetype</th>
                 <th>Booking(s)</th>
+                <th></th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -46,6 +48,33 @@ export async function mount(container) {
     const dateFilter = container.querySelector("#dateFilter");
     const searchBtn = container.querySelector("#searchBtn");
     const statusBox = container.querySelector("#statusBox");
+    const resultTable = container.querySelector("#resultTable");
+    const resultBody  = resultTable.querySelector("tbody");
+
+    resultBody.addEventListener("click", (e) => {
+        const btn = e.target.closest(".btn-delete");
+        if (!btn) return;
+        const id = btn.dataset.id;
+        handleDeleteReservation(id); // <-- kalder view-funktionen ovenfor
+    });
+
+    resultBody.addEventListener("click", (e) => {
+        const btn = e.target.closest(".btn-save");
+        if (!btn) return;
+
+        const id = btn.dataset.id;
+        const row = btn.closest("tr");
+        const updateBody = {
+            contactName: row.querySelector('input[name="contactName"]')?.value,
+            email:       row.querySelector('input[name="email"]')?.value,
+            phone:       row.querySelector('input[name="phone"]')?.value,
+            customerType:row.querySelector('select[name="customerType"]')?.value,
+            // ... evt. andre felter
+        };
+
+        applyUpdate(id, updateBody);
+    });
+
 
     // Muligt at trykke enter for at søge
     searchInput.addEventListener("keydown", (event) => {
@@ -144,14 +173,49 @@ export async function mount(container) {
 
             const row = document.createElement("tr");
             row.innerHTML = `
-                <td>${result.id}</td>
-                <td>${result.contactName}</td>
-                <td>${result.email}</td>
-                <td>${result.phone}</td>
-                <td>${result.customerType}</td>
-                <td>${bookings}</td>
-            `;
+        <td>${result.id}</td>
+        <td><input name="contactName" type="text" value="${result.contactName ?? ""}"></td>
+        <td><input name="email" type="email" value="${result.email ?? ""}"></td>
+        <td><input name="phone" type="tel" value="${result.phone ?? ""}"></td>
+        <td>
+          <select name="customerType">
+            <option value="PRIVATE" ${result.customerType === "PRIVATE" ? "selected" : ""}>PRIVATE</option>
+            <option value="BUSINESS" ${result.customerType === "BUSINESS" ? "selected" : ""}>BUSINESS</option>
+          </select>
+        </td>
+        <td>${bookings}</td>
+        <td>
+          <button class="btn-save" data-id="${result.id}">Gem</button>
+          <button class="btn-delete" data-id="${result.id}">Slet</button>
+        </td>
+      `;
             resultBody.appendChild(row);
         });
     }
+
+    async function handleDeleteReservation(reservationId) {
+        if (!reservationId) return;
+        if (!confirm(`Slet reservation #${reservationId}?`)) return;
+
+        try {
+            await deleteReservation(reservationId); // kalder API-wrapperen
+            alert(`Reservation #${reservationId} er slettet.`);
+            location.reload(); // eller opdatér tabellen uden reload
+        } catch (err) {
+            alert("Kunne ikke slette: " + (err?.message || err));
+        }
+    }
+
+
+    async function applyUpdate(reservationId, updateBody) {
+        if (!reservationId) return;
+        try {
+            await patchReservation(reservationId, updateBody); // bruger BASE_URL fra api.js
+            alert(`Reservation #${reservationId} er opdateret.`);
+            location.reload();
+        } catch (err) {
+            alert("Kunne ikke opdatere: " + (err?.message || err));
+        }
+    }
+
 }

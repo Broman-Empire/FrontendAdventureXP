@@ -180,18 +180,64 @@ export async function deleteReservation(reservationId) {
 
 // ADMIN: hent dags-skema
 export async function getSchedule(date) {
-    if (!date) throw new Error("getSchedule(date) kræver YYYY-MM-DD");
-    const res = await fetch(`${BASE_URL}/admin/reservations?date=${encodeURIComponent(date)}`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" }
+    if (!date) throw new Error('getSchedule(date) kræver YYYY-MM-DD');
+    const params = new URLSearchParams({ date });
+    const res = await fetch(`${BASE_URL}/admin/reservations?${params.toString()}`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
     });
     if (!res.ok) {
-        const t = await res.text().catch(() => "");
+        const t = await res.text().catch(() => '');
         throw new Error(`Failed to load schedule for ${date}. ${res.status} ${res.statusText}. ${t}`);
     }
     return res.json();
 }
 
+export async function applyUpdate(reservationId, updateBody) {
+    const form = document.getElementById("editReservationForm");
+    const modal = document.getElementById("editModal");
+
+    const submitBtn = form?.querySelector('button[type="submit"]');
+    const originalText = submitBtn?.textContent;
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Gemmer...";
+    }
+
+    try {
+        // 1) PATCH til backend
+        await patchReservation(reservationId, updateBody);
+
+        if (modal) modal.style.display = "none";
+
+        // 3) Genindlæs visningen
+        const datePicker = document.querySelector("#dateFilter");
+        const date = datePicker?.value;
+
+        if (date) {
+            datePicker.dispatchEvent(new Event("change"));
+            return;
+        }
+        if (typeof window.refreshReservations == "function") {
+            await window.refreshReservations();
+            return;
+        }
+        if (typeof window.loadReservationsForDate == "function") {
+            await window.loadReservationsForDate(new Date().toISOString().slice(0, 10));
+            return;
+        }
+        window.location.reload();
+
+    } catch (err) {
+        console.error(err);
+        alert("Kunne ikke opdatere reservationen. Tjek felterne og prøv igen.");
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+        }
+    }
+}
 // Find reservation via telefonummer
 export async function searchReservation(phone) {
     const param = new URLSearchParams({ phone });
