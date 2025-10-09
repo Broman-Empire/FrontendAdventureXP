@@ -3,7 +3,7 @@
 import { getActivities, getEquipmentByActivity, updateEquipment, deleteEquipment } from "../api.js";
 import { navigation } from "../main.js";
 
-const useMock = true //False, når backend er klar
+const useMock = false; //False, når backend er klar
 
 export async function mount(container) {
     container.innerHTML = `

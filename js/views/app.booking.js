@@ -96,7 +96,7 @@ async function onDateChange(date){
 }
 
 // Mount til booking form
-export function mount(container) {
+export async function mount(container) {
     // Opret en form til at indtaste information
     const form = document.createElement("form");
 

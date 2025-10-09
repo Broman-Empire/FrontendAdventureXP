@@ -1,6 +1,6 @@
 // ---- Admin Schedule ----
 
-import { getReservations } from "../api.js";
+import { getDailySchedule } from "../api.js";
 
 // Mock skal være false, når backend kører
 const useMock =  false;
@@ -70,7 +70,7 @@ export async function loadSchedule(date) {
             ];
         } else {
             console.log("Henter rigtig data fra API.");
-            rows = await getReservations(date); // Henter JSON fra backend
+            rows = await getDailySchedule(date); // Henter JSON fra backend
         }
 
         // Sorterer efter tid
@@ -98,8 +98,8 @@ export function renderSchedule(rows) {
     <table class="schedule-table">
       <thead>
         <tr>
-          <th>ID</th>
-          <th>Aktivitets-ID</th>
+          <th>Booking ID</th>
+          <th>Aktivitetsnavn</th>
           <th>Starttidspunkt</th>
           <th>Deltagere</th>
           <th>Kapacitet</th>
@@ -110,8 +110,8 @@ export function renderSchedule(rows) {
         .map(
             row => `
               <tr>
-                <td>${row.id}</td>
-                <td>${row.activityId}</td>
+                <td>${row.bookingId}</td>
+                <td>${row.activityName}</td>
                 <td>${formatDateTime(row.startsAt)}</td>
                 <td>${row.participants}</td>
                 <td>${row.totalParticipants}</td>
