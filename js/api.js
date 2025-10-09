@@ -3,12 +3,11 @@
 const BASE_URL = 'http://localhost:8080/api';
 
 // TODO (backend & server-side):
-// - Check @GetMapping endpoint: /api/activities
-// - Check @GetMapping endpoint: /api/activities/{activityId}/availability?date=YYYY-MM-DD
 // - Check @PostMapping endpoint: /api/reservations
-// - Check CORS is enabled for frontend (server-side) - så backend og frontend taler sammen
 
 // ---- Activity wrappers ----
+
+// -- For alle brugere --
 
 // Fetch all activities
 export async function getActivities() {
@@ -19,6 +18,25 @@ export async function getActivities() {
     return response.json();
 }
 
+// Fetch availability for a specific activity and date
+export async function getAvailability(activityId, fromDate, toDate, openTime, closeTime) {
+
+    const params = new URLSearchParams({
+        fromDate,
+        toDate,
+        openTime,
+        closeTime
+    }); //Dette er et objekt
+    // JS forventer en String, ikke et objekt til URL'en
+    const response = await fetch(`${BASE_URL}/availability/${activityId}?${params.toString()}`);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch availability: ${response.statusText}`);
+    }
+    return response.json();
+}
+
+
+// TODO: denne skal flyttes til relevant view
 // Loader aktiviteter fra backend
 async function loadActivities() {
     const activities = await getActivities();
@@ -39,6 +57,7 @@ async function loadActivities() {
     return activities;
 }
 
+// -- For admin
 
 // Hent alle aktiviteter (admin)
 export async function getAdminActivities() {
@@ -49,7 +68,7 @@ export async function getAdminActivities() {
     return response.json();
 }
 
-// Opret ny Activity
+// Opret ny Activity (admin)
 export async function createActivity(activity) {
     const response = await fetch(`${BASE_URL}/admin/activities`, {
         method: "POST",
@@ -64,7 +83,7 @@ export async function createActivity(activity) {
     return response.json();
 }
 
-// Opdater aktivitet med PATCH
+// Opdater aktivitet med PATCH (admin)
 export async function updateActivity(id, patch) {
     const response = await fetch(`${BASE_URL}/admin/activities/${id}`, {
         method: "PATCH",
@@ -79,7 +98,7 @@ export async function updateActivity(id, patch) {
     return response.json();
 }
 
-// Slet aktivitet
+// Slet aktivitet (admin)
 export async function deleteActivity(id) {
     const response = await fetch(`${BASE_URL}/admin/activities/${id}`, {
         method: "DELETE"
@@ -89,21 +108,7 @@ export async function deleteActivity(id) {
     }
 }
 
-// Fetch availability for a specific activity and date
-export async function getAvailability(activityId, fromDate, toDate, openTime, closeTime) {
-    const params = new URLSearchParams({
-        fromDate,
-        toDate,
-        openTime,
-        closeTime
-    }); //Dette er et objekt
-                                                // JS forventer en String, ikke et objekt til URL'en
-    const response = await fetch(`${BASE_URL}/availability/${activityId}?${params.toString()}`);
-    if (!response.ok) {
-        throw new Error(`Failed to fetch availability: ${response.statusText}`);
-    }
-    return response.json();
-}
+
 
 // ---- Reservation wrappers ----
 
@@ -122,18 +127,6 @@ export async function postReservation(payload){
     return response.json();
 }
 
-// Henter reservation for at vise schedule
-export async function getReservations(date) {
-    let url = `${BASE_URL}/admin/reservations`;
-    if (date) {
-        url += `?date=${date}`; // Hvis dato er som @RequestParam i url
-    }
-    const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error(`Failed to fetch reservations: ${response.statusText}`);
-    }
-    return response.json();
-}
 
 // Henter reservation med ID (admin) – bruges af openEdit(reservationId)
 export async function getReservationById(reservationId) {
@@ -193,52 +186,20 @@ export async function getSchedule(date) {
     return res.json();
 }
 
-export async function applyUpdate(reservationId, updateBody) {
-    const form = document.getElementById("editReservationForm");
-    const modal = document.getElementById("editModal");
-
-    const submitBtn = form?.querySelector('button[type="submit"]');
-    const originalText = submitBtn?.textContent;
-    if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.textContent = "Gemmer...";
-    }
-
-    try {
-        // 1) PATCH til backend
-        await patchReservation(reservationId, updateBody);
-
-        if (modal) modal.style.display = "none";
-
-        // 3) Genindlæs visningen
-        const datePicker = document.querySelector("#dateFilter");
-        const date = datePicker?.value;
-
-        if (date) {
-            datePicker.dispatchEvent(new Event("change"));
-            return;
-        }
-        if (typeof window.refreshReservations == "function") {
-            await window.refreshReservations();
-            return;
-        }
-        if (typeof window.loadReservationsForDate == "function") {
-            await window.loadReservationsForDate(new Date().toISOString().slice(0, 10));
-            return;
-        }
-        window.location.reload();
-
-    } catch (err) {
-        console.error(err);
-        alert("Kunne ikke opdatere reservationen. Tjek felterne og prøv igen.");
-    } finally {
-        if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.textContent = originalText;
-        }
-    }
+// Denne metode vil forvirre, men den bruges i schedule.admin.js og bruger andre felter + logik end ovenstående metode (admin)
+export async function getDailySchedule(date) {
+    if (!date) throw new Error("getSchedule(date) kræver YYYY-MM-DD");
+    const params = new URLSearchParams({ date });
+    const res = await fetch(`${BASE_URL}/admin/schedule?${params.toString()}`, {
+        method: "GET",
+        headers: { "Accept": "application/json" }
+    });
+    if (!res.ok) throw new Error(`Kunne ikke hente skema for ${date}`);
+    return res.json();
 }
-// Find reservation via telefonummer
+
+
+// Find reservation via telefonnummer (admin)
 export async function searchReservation(phone) {
     const param = new URLSearchParams({ phone });
     const response = await fetch(`${BASE_URL}/admin/search?${param}`);
@@ -250,7 +211,7 @@ export async function searchReservation(phone) {
 
 // Opdater en eksisterende reservation (delvist)
 export async function patchReservation(reservationId, patch) {
-    const response = await fetch(`${BASE_URL}/reservations/${reservationId}`, {
+    const response = await fetch(`${BASE_URL}/admin/reservations/${reservationId}`, {
         method: 'PATCH',
         headers: {
             'Content-Type': 'application/json'
@@ -262,6 +223,18 @@ export async function patchReservation(reservationId, patch) {
     }
     return response.json();
 }
+
+// // Slet en reservation
+// export async function deleteReservation(reservationId) {
+//     const response = await fetch(`${BASE_URL}/admin/reservations/${reservationId}`, {
+//         method: 'DELETE',
+//     });
+//     if (!response.ok) {
+//         throw new Error(`Failed to delete reservation ${reservationId}: ${response.statusText}`);
+//     }
+//     return true; // En bekræftelse
+// }
+
 
 // ---- Equipment wrappers ----
 

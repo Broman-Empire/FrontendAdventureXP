@@ -114,7 +114,7 @@ async function loadActivities() {
 
         addActivityEventListeners();
     } catch (error) {
-        console.error("Fejl ved hentning af aktiviteter:", error);
+        console.error("Fejl da aktiviteter skulle hentes:", error);
         container.innerHTML = `<p>Kunne ikke hente aktiviteter.</p>`;
     }
 }

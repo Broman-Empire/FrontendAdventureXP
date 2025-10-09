@@ -14,7 +14,7 @@ async function submitReservation(reservationInfo) {
     try {
 
         // Mocker en reservation indtil backend er klar
-        const useMock = true; // Skal være false, når backend er klar
+        const useMock = false; // Skal være false, når backend er klar
 
         let response;
 
@@ -74,6 +74,7 @@ function showAvailability(availability) {
     resultsContainer.appendChild(ul);
 }
 
+// TODO: Denne metode virker ikke
 // Load availability data and display it
 async function loadAvailability(activityId, date) {
     try {
@@ -95,7 +96,7 @@ async function onDateChange(date){
 }
 
 // Mount til booking form
-export function mount(container) {
+export async function mount(container) {
     // Opret en form til at indtaste information
     const form = document.createElement("form");
 

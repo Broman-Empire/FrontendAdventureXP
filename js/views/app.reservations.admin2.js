@@ -9,7 +9,7 @@ import {
 import { navigation } from "../main.js";
 
 // Tænd/sluk mock
-const useMock = true;
+const useMock = false;
 
 /* ---------- MOCK DATA ---------- */
 const mockDb = {
