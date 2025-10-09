@@ -3,6 +3,7 @@
 const BASE_URL = 'http://localhost:8080/api';
 
 // TODO (backend & server-side):
+// - Check @GetMapping endpoint: /api/activities
 // - Check @GetMapping endpoint: /api/activities/{activityId}/availability?date=YYYY-MM-DD
 // - Check @PostMapping endpoint: /api/reservations
 // - Check CORS is enabled for frontend (server-side) - så backend og frontend taler sammen
@@ -142,14 +143,109 @@ export async function getReservations(date) {
     return response.json();
 }
 
-// TODO Vi skal lige finde ud af, hvornår vi loader aktiviteterne
-// // Når DOM’en er klar
-// document.addEventListener("DOMContentLoaded", async () => {
-//     const container = document.getElementById("app");
-//     mount(container);
-//     await loadActivities();
-// });
+// Henter reservation med ID (admin) – bruges af openEdit(reservationId)
+export async function getReservationById(reservationId) {
+    const res = await fetch(`${BASE_URL}/admin/reservations/${reservationId}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+    });
+    if (!res.ok) {
+        const t = await res.text().catch(() => '');
+        throw new Error(`Failed to fetch reservation ${reservationId}. ${res.status} ${res.statusText}. ${t}`);
+    }
+    return res.json();
+}
 
+// Opdaterer reservation (admin) – bruges af applyUpdate(reservationId, updateBody)
+export async function updateReservation(updateBody) {
+    const res = await fetch(`${BASE_URL}/admin/reservations/${updateBody.reservationId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updateBody)
+    });
+    if (!res.ok) {
+        const t = await res.text().catch(() => '');
+        throw new Error(`Failed to update reservation ${updateBody.reservationId}. ${res.status} ${res.statusText}. ${t}`);
+    }
+    try {
+        return await res.json();    // 200 OK
+    } catch {
+        return true;                // 204 No Content
+    }
+}
+
+// Slet reservation (admin)
+export async function deleteReservation(reservationId) {
+    const res = await fetch(`${BASE_URL}/admin/reservations/${reservationId}`, {
+        method: 'DELETE'
+    });
+    if (!res.ok) {
+        const t = await res.text().catch(() => '');
+        throw new Error(`Failed to delete reservation ${reservationId}. ${res.status} ${res.statusText}. ${t}`);
+    }
+    return true;
+}
+
+// ADMIN: hent dags-skema
+export async function getSchedule(date) {
+    if (!date) throw new Error('getSchedule(date) kræver YYYY-MM-DD');
+    const params = new URLSearchParams({ date });
+    const res = await fetch(`${BASE_URL}/admin/reservations?${params.toString()}`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+    });
+    if (!res.ok) {
+        const t = await res.text().catch(() => '');
+        throw new Error(`Failed to load schedule for ${date}. ${res.status} ${res.statusText}. ${t}`);
+    }
+    return res.json();
+}
+
+export async function applyUpdate(reservationId, updateBody) {
+    const form = document.getElementById("editReservationForm");
+    const modal = document.getElementById("editModal");
+
+    const submitBtn = form?.querySelector('button[type="submit"]');
+    const originalText = submitBtn?.textContent;
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Gemmer...";
+    }
+
+    try {
+        // 1) PATCH til backend
+        await patchReservation(reservationId, updateBody);
+
+        if (modal) modal.style.display = "none";
+
+        // 3) Genindlæs visningen
+        const datePicker = document.querySelector("#dateFilter");
+        const date = datePicker?.value;
+
+        if (date) {
+            datePicker.dispatchEvent(new Event("change"));
+            return;
+        }
+        if (typeof window.refreshReservations == "function") {
+            await window.refreshReservations();
+            return;
+        }
+        if (typeof window.loadReservationsForDate == "function") {
+            await window.loadReservationsForDate(new Date().toISOString().slice(0, 10));
+            return;
+        }
+        window.location.reload();
+
+    } catch (err) {
+        console.error(err);
+        alert("Kunne ikke opdatere reservationen. Tjek felterne og prøv igen.");
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+        }
+    }
+}
 // Find reservation via telefonnummer (admin)
 export async function searchReservation(phone) {
     const param = new URLSearchParams({ phone });
@@ -175,16 +271,16 @@ export async function patchReservation(reservationId, patch) {
     return response.json();
 }
 
-// Slet en reservation 
-export async function deleteReservation(reservationId) {
-    const response = await fetch(`${BASE_URL}/admin/reservations/${reservationId}`, {
-        method: 'DELETE',
-    });
-    if (!response.ok) {
-        throw new Error(`Failed to delete reservation ${reservationId}: ${response.statusText}`);
-    }
-    return true; // En bekræftelse
-}
+// // Slet en reservation
+// export async function deleteReservation(reservationId) {
+//     const response = await fetch(`${BASE_URL}/admin/reservations/${reservationId}`, {
+//         method: 'DELETE',
+//     });
+//     if (!response.ok) {
+//         throw new Error(`Failed to delete reservation ${reservationId}: ${response.statusText}`);
+//     }
+//     return true; // En bekræftelse
+// }
 
 
 // ---- Equipment wrappers ----
