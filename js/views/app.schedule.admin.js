@@ -3,7 +3,7 @@
 import { getReservations } from "../api.js";
 
 // Mock skal være false, når backend kører
-const useMock = true;
+const useMock =  false;
 
 export async function mount(container) {
     container.innerHTML = `

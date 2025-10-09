@@ -3,12 +3,13 @@
 const BASE_URL = 'http://localhost:8080/api';
 
 // TODO (backend & server-side):
-// - Check @GetMapping endpoint: /api/activities
 // - Check @GetMapping endpoint: /api/activities/{activityId}/availability?date=YYYY-MM-DD
 // - Check @PostMapping endpoint: /api/reservations
 // - Check CORS is enabled for frontend (server-side) - så backend og frontend taler sammen
 
 // ---- Activity wrappers ----
+
+// -- For alle brugere --
 
 // Fetch all activities
 export async function getActivities() {
@@ -19,6 +20,25 @@ export async function getActivities() {
     return response.json();
 }
 
+// Fetch availability for a specific activity and date
+export async function getAvailability(activityId, fromDate, toDate, openTime, closeTime) {
+
+    const params = new URLSearchParams({
+        fromDate,
+        toDate,
+        openTime,
+        closeTime
+    }); //Dette er et objekt
+    // JS forventer en String, ikke et objekt til URL'en
+    const response = await fetch(`${BASE_URL}/availability/${activityId}?${params.toString()}`);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch availability: ${response.statusText}`);
+    }
+    return response.json();
+}
+
+
+// TODO: denne skal flyttes til relevant view
 // Loader aktiviteter fra backend
 async function loadActivities() {
     const activities = await getActivities();
@@ -39,6 +59,7 @@ async function loadActivities() {
     return activities;
 }
 
+// -- For admin
 
 // Hent alle aktiviteter (admin)
 export async function getAdminActivities() {
@@ -49,7 +70,7 @@ export async function getAdminActivities() {
     return response.json();
 }
 
-// Opret ny Activity
+// Opret ny Activity (admin)
 export async function createActivity(activity) {
     const response = await fetch(`${BASE_URL}/admin/activities`, {
         method: "POST",
@@ -64,7 +85,7 @@ export async function createActivity(activity) {
     return response.json();
 }
 
-// Opdater aktivitet med PATCH
+// Opdater aktivitet med PATCH (admin)
 export async function updateActivity(id, patch) {
     const response = await fetch(`${BASE_URL}/admin/activities/${id}`, {
         method: "PATCH",
@@ -79,7 +100,7 @@ export async function updateActivity(id, patch) {
     return response.json();
 }
 
-// Slet aktivitet
+// Slet aktivitet (admin)
 export async function deleteActivity(id) {
     const response = await fetch(`${BASE_URL}/admin/activities/${id}`, {
         method: "DELETE"
@@ -89,21 +110,7 @@ export async function deleteActivity(id) {
     }
 }
 
-// Fetch availability for a specific activity and date
-export async function getAvailability(activityId, fromDate, toDate, openTime, closeTime) {
-    const params = new URLSearchParams({
-        fromDate,
-        toDate,
-        openTime,
-        closeTime
-    }); //Dette er et objekt
-                                                // JS forventer en String, ikke et objekt til URL'en
-    const response = await fetch(`${BASE_URL}/availability/${activityId}?${params.toString()}`);
-    if (!response.ok) {
-        throw new Error(`Failed to fetch availability: ${response.statusText}`);
-    }
-    return response.json();
-}
+
 
 // ---- Reservation wrappers ----
 
@@ -121,8 +128,8 @@ export async function postReservation(payload){
     }
     return response.json();
 }
-
-// Henter reservation for at vise schedule
+// TODO: denne peger ikke på noget før backend understøtter dens funktion
+// Henter reservations for at vise schedule (admin)
 export async function getReservations(date) {
     let url = `${BASE_URL}/admin/reservations`;
     if (date) {
@@ -143,7 +150,7 @@ export async function getReservations(date) {
 //     await loadActivities();
 // });
 
-// Find reservation via telefonummer
+// Find reservation via telefonnummer (admin)
 export async function searchReservation(phone) {
     const param = new URLSearchParams({ phone });
     const response = await fetch(`${BASE_URL}/admin/search?${param}`);
@@ -155,7 +162,7 @@ export async function searchReservation(phone) {
 
 // Opdater en eksisterende reservation (delvist)
 export async function patchReservation(reservationId, patch) {
-    const response = await fetch(`${BASE_URL}/reservations/${reservationId}`, {
+    const response = await fetch(`${BASE_URL}/admin/reservations/${reservationId}`, {
         method: 'PATCH',
         headers: {
             'Content-Type': 'application/json'
