@@ -1,0 +1,27 @@
+/* FONT IMPORTS */
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700&display=swap');
+
+/* CORE FOUNDATION */
+@import url(./base.css);
+
+/* UI COMPONENTS */
+@import url(./components/buttons.css);
+@import url(./components/tables.css);
+@import url(./components/cards.css);
+@import url(./components/alerts.css);
+
+/* LAYOUT & UTILITIES */
+@import url(./components/layout.css);
+@import url(./components/utilities.css);
+
+/* ==========================================
+   STRUCTURE NOTES
+   - base.css: Global color palette, typography base, variables
+   - buttons.css: Buttons (.btn), primary/ghost variants, hover states
+   - tables.css: Table styling (.table), headers, borders, hover rows
+   - cards.css: Cards (.card), content containers, shadows, titles
+   - alerts.css: Alerts (.error, .success), notification boxes
+   - layout.css: Layout containers (.container, .grid, .stack)
+   - utilities.css: Utility helpers (text-center, mt-1, visually-hidden)
+   - Import order: foundation → components → layout → utilities
+   ========================================== */

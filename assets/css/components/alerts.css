@@ -1,0 +1,30 @@
+.alert{
+    padding:.75rem 1rem;
+    border-radius: var(--radius-sm);
+    border:1px solid transparent;
+    background: var(--surface);
+}
+
+.success, .alert--success{
+    border-color: color-mix(in oklab, var(--success) 50%, black);
+    background: color-mix(in oklab, var(--success) 15%, var(--surface));
+    color: #d8ffe9;
+}
+
+.error, .alert--error{
+    border-color: color-mix(in oklab, var(--error) 50%, black);
+    background: color-mix(in oklab, var(--error) 15%, var(--surface));
+    color: #ffd9dc;
+}
+
+.warning, .alert--warning{
+    border-color: color-mix(in oklab, var(--warning) 50%, black);
+    background: color-mix(in oklab, var(--warning) 15%, var(--surface));
+    color: #fff4d1;
+}
+
+.alert--info{
+    border-color: color-mix(in oklab, var(--info) 50%, black);
+    background: color-mix(in oklab, var(--info) 15%, var(--surface));
+    color:#d7ecff;
+}
