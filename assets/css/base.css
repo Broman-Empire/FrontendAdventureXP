@@ -27,6 +27,15 @@
     --fs-20: 1.25rem;
 }
 
+body{
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
 a{
     color: var(--primary);
     text-decoration: none;

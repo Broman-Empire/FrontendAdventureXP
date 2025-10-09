@@ -7,15 +7,21 @@ import { getActivities } from "../api.js";
 export async function mount(container) {
     container.innerHTML = `
     <section class="frontpage">
-      <div class="container text-center mt-2">
-        <h1 style="font-family: var(--font-heading); font-size: 3rem;">Adventure XP</h1>
-        <p class="mt-1" style="font-family: var(--font-body); font-weight: 600;">ADVENTURE · ADRENALINE · ACTION · ALIVE · ALL IN</p>
-        <div class="mt-2">
-          <h2 style="font-size: 2rem; font-family: var(--font-heading);">FEEL THE RUSH<br>HAVE SOME FUN</h2>
-          <button class="btn btn--primary btn--lg mt-2" id="main-booking-btn">BOOK</button>
+      <section class="frontpage-hero-area">
+        <div class="container text-center">
+          <h1 class="frontpage-title">ADVENTURE XP</h1>
+          <div class="frontpage-divider frontpage-divider--thick"></div>
+          <p class="frontpage-tagline">ADVENTURE · ADRENALINE · ACTION · ALIVE · ALL IN</p>
+          <div class="frontpage-divider frontpage-divider--thin"></div>
+          <div class="frontpage-hero">
+            <h2 class="frontpage-hero-title">FEEL THE RUSH<br>HAVE SOME FUN</h2>
+            <button class="btn btn--primary btn--lg" id="main-booking-btn">BOOK</button>
+          </div>
         </div>
-        <div id="activity-list" class="mt-3"></div>
-        <footer class="mt-3" style="font-weight: 700;">
+      </section>
+      <div class="container text-center">
+        <div id="activity-list"></div>
+        <footer class="frontpage-footer">
           <div>MADE BY BIEMPIRE &nbsp; INSTA EMAIL</div>
           <div>ADVENTURE XP &copy;2025</div>
         </footer>
@@ -33,19 +39,21 @@ export async function mount(container) {
     function renderActivities(activities) {
         const list = container.querySelector("#activity-list");
         list.innerHTML = `
-        <div class="grid grid--3">
+      <div class="activity-grid-wrapper">
+        <div class="grid grid--2">
           ${activities.map(a => `
-            <div class="card text-center">
+            <div class="card">
               <div class="card__body">
-                <div class="card__img card__img--circle" style="background-image:url('${a.imageUrl || "/assets/img/activity-placeholder.jpg"}'); width: 120px; height: 120px; margin: 0 auto 1rem auto; background-size:cover; background-position:center;"></div>
+                <div class="card__img card__img--circle" style="background-image:url('${a.imageUrl || "/assets/img/activity-placeholder.jpg"}');"></div>
                 <h3 class="card__title">${a.name}</h3>
                 <p>${a.description || ""}</p>
-                <button class="btn btn--primary btn--block btn--sm mt-1" data-activity-id="${a.id}">Book</button>
+                <button class="btn btn--primary btn--block btn--sm" data-activity-id="${a.id}">Book</button>
               </div>
             </div>
           `).join("")}
         </div>
-      `;
+      </div>
+    `;
         list.querySelectorAll(".btn-book-activity").forEach(btn => 
             btn.addEventListener("click", (e) => navigation("booking"))
         );
