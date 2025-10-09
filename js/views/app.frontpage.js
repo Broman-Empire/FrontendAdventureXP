@@ -3,6 +3,14 @@ import { navigation } from "../main.js";
 import { getActivities } from "../api.js";
 
 export async function mount(container) {
+    const activityImages = {
+        gokart: "/assets/images/activities/gokart.jpg",
+        paintball: "/assets/images/activities/paintball.jpg",
+        minigolf: "/assets/images/activities/minigolf.jpg",
+        sumowrestling: "/assets/images/activities/sumo_wrestling.jpg",
+        sumo_wrestling: "/assets/images/activities/sumo_wrestling.jpg"
+    };
+
     container.innerHTML = `
     <section class="frontpage">
 
@@ -57,8 +65,8 @@ export async function mount(container) {
         }
 
         list.innerHTML = activities.map((a, index) => `
-          <div class="activity-card">
-            <div class="activity-img" style="background-image:url('${a.imageUrl || "/assets/img/activity-placeholder.jpg"}')"></div>
+          <div class="activity-card ${resolveClass(a)}">
+            <div class="activity-img" style="background-image:url('${resolveImage(a)}')"></div>
             <div class="activity-title">${a.name}</div>
             <div class="activity-desc">
               <div class="activity-desc__label">${formatLabel(a)}</div>
@@ -86,5 +94,17 @@ export async function mount(container) {
         if (activity.minParticipants) bits.push(`Min ${activity.minParticipants} pax`);
         if (activity.description) bits.push(activity.description);
         return bits.length ? bits.join(" · ") : "Check back soon";
+    }
+
+    function resolveImage(activity) {
+        if (activity.imageUrl) return activity.imageUrl;
+        const key = (activity.name || "").toLowerCase().replace(/\s+/g, "");
+        return activityImages[key] || "/assets/imgages/activity-placeholder.jpg";
+    }
+
+    function resolveClass(activity) {
+        const key = (activity.name || "").toLowerCase().replace(/\s+/g, "");
+        if (!key) return "";
+        return `activity-card--${key}`;
     }
 }
