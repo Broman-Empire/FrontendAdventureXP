@@ -126,19 +126,7 @@ export async function postReservation(payload){
     }
     return response.json();
 }
-// TODO: denne peger ikke på noget før backend understøtter dens funktion
-// Henter reservations for at vise schedule (admin)
-export async function getReservations(date) {
-    let url = `${BASE_URL}/admin/reservations`;
-    if (date) {
-        url += `?date=${date}`; // Hvis dato er som @RequestParam i url
-    }
-    const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error(`Failed to fetch reservations: ${response.statusText}`);
-    }
-    return response.json();
-}
+
 
 // Henter reservation med ID (admin) – bruges af openEdit(reservationId)
 export async function getReservationById(reservationId) {
