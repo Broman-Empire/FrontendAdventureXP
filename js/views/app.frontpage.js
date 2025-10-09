@@ -16,8 +16,8 @@ export async function mount(container) {
 
       <header class="frontpage-header">
         <div class="frontpage-header-bar">
-          <span class="frontpage-header-link active">HOME</span>
-          <span class="frontpage-header-link">LOGIN</span>
+          <span class="frontpage-header-link active" data-nav="frontpage">HOME</span>
+          <span class="frontpage-header-link" data-nav="login">LOGIN</span>
         </div>
       </header>
 
@@ -38,19 +38,38 @@ export async function mount(container) {
       </section>
 
       <footer class="frontpage-footer">
-        <div class="footer-upper">
-          <div class="footer-insta">INSTA<br>EMAIL</div>
+        <div class="footer-content">
+          <h4 class="footer-heading">ADVENTURE XP</h4>
+          <p class="footer-tagline">Unleash the fun. Embrace the thrill.</p>
+          <div class="footer-details">
+            <p>📍 Copenhagen, Denmark</p>
+            <p>📞 +45 1234 5678</p>
+            <p>✉️ info@adventurexp.com</p>
+          </div>
         </div>
-        <div class="footer-lower">
-          <span class="footer-brand">ADVENTURE XP</span>
-          <span class="footer-note">ALL RIGHTS RESERVED · BIEMPIRE</span>
-          <span class="footer-year">&copy;2025</span>
-        </div>
+        <p class="footer-bottom">© 2025 Adventure XP · All Rights Reserved</p>
       </footer>
     </section>
     `;
 
-    // Navigation button (top)
+    // Navigation buttons (header)
+    const navLinks = container.querySelectorAll(".frontpage-header-link[data-nav]");
+    const navMap = {
+        frontpage: "frontpage",
+        home: "frontpage",
+        admin: "admin"
+    };
+    navLinks.forEach(link => {
+        link.addEventListener("click", () => {
+            const target = (link.dataset.nav || "").toLowerCase();
+            const view = navMap[target] || target;
+            if (view) {
+                navigation(view);
+            }
+        });
+    });
+
+        // Booking button (top)
     container.querySelector(".frontpage-main-book-btn").addEventListener("click", () => navigation("booking"));
 
     // Render activities
@@ -96,10 +115,12 @@ export async function mount(container) {
         return bits.length ? bits.join(" · ") : "Check back soon";
     }
 
+
+    // resolve image
     function resolveImage(activity) {
         if (activity.imageUrl) return activity.imageUrl;
         const key = (activity.name || "").toLowerCase().replace(/\s+/g, "");
-        return activityImages[key] || "/assets/imgages/activity-placeholder.jpg";
+        return activityImages[key] || "/assets/img/activity-placeholder.jpg";
     }
 
     function resolveClass(activity) {
