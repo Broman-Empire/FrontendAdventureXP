@@ -130,83 +130,9 @@ export async function postReservation(payload){
 
 // Henter reservation med ID (admin) – bruges af openEdit(reservationId)
 export async function getReservationById(reservationId) {
-    const res = await fetch(`${BASE_URL}/admin/reservations/${reservationId}`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
-    });
-    if (!res.ok) {
-        const t = await res.text().catch(() => '');
-        throw new Error(`Failed to fetch reservation ${reservationId}. ${res.status} ${res.statusText}. ${t}`);
-    }
+    const res = await fetch(`${BASE_URL}/admin/reservations/${reservationId}`);
+    if (!res.ok) throw new Error(`Failed to fetch reservation ${reservationId}: ${res.statusText}`);
     return res.json();
-}
-
-// Opdaterer reservation (admin) – bruges af applyUpdate(reservationId, updateBody)
-export async function updateReservation(updateBody) {
-    const res = await fetch(`${BASE_URL}/admin/reservations/${updateBody.reservationId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updateBody)
-    });
-    if (!res.ok) {
-        const t = await res.text().catch(() => '');
-        throw new Error(`Failed to update reservation ${updateBody.reservationId}. ${res.status} ${res.statusText}. ${t}`);
-    }
-    try {
-        return await res.json();    // 200 OK
-    } catch {
-        return true;                // 204 No Content
-    }
-}
-
-// Slet reservation (admin)
-export async function deleteReservation(reservationId) {
-    const res = await fetch(`${BASE_URL}/admin/reservations/${reservationId}`, {
-        method: 'DELETE'
-    });
-    if (!res.ok) {
-        const t = await res.text().catch(() => '');
-        throw new Error(`Failed to delete reservation ${reservationId}. ${res.status} ${res.statusText}. ${t}`);
-    }
-    return true;
-}
-
-// ADMIN: hent dags-skema
-export async function getSchedule(date) {
-    if (!date) throw new Error('getSchedule(date) kræver YYYY-MM-DD');
-    const params = new URLSearchParams({ date });
-    const res = await fetch(`${BASE_URL}/admin/reservations?${params.toString()}`, {
-        method: 'GET',
-        headers: { 'Accept': 'application/json' }
-    });
-    if (!res.ok) {
-        const t = await res.text().catch(() => '');
-        throw new Error(`Failed to load schedule for ${date}. ${res.status} ${res.statusText}. ${t}`);
-    }
-    return res.json();
-}
-
-// Denne metode vil forvirre, men den bruges i schedule.admin.js og bruger andre felter + logik end ovenstående metode (admin)
-export async function getDailySchedule(date) {
-    if (!date) throw new Error("getSchedule(date) kræver YYYY-MM-DD");
-    const params = new URLSearchParams({ date });
-    const res = await fetch(`${BASE_URL}/admin/schedule?${params.toString()}`, {
-        method: "GET",
-        headers: { "Accept": "application/json" }
-    });
-    if (!res.ok) throw new Error(`Kunne ikke hente skema for ${date}`);
-    return res.json();
-}
-
-
-// Find reservation via telefonnummer (admin)
-export async function searchReservation(phone) {
-    const param = new URLSearchParams({ phone });
-    const response = await fetch(`${BASE_URL}/admin/search?${param}`);
-    if (!response.ok) {
-        throw new Error(`Failed to fetch reservation by phone: ${response.statusText}`);
-    }
-    return response.json();
 }
 
 // Opdater en eksisterende reservation (delvist)
@@ -224,6 +150,58 @@ export async function patchReservation(reservationId, patch) {
     return response.json();
 }
 
+// Slet reservation (admin)
+export async function deleteReservation(reservationId) {
+    const res = await fetch(`${BASE_URL}/admin/reservations/${reservationId}`, {
+        method: 'DELETE'
+    });
+    if (!res.ok) {
+        const t = await res.text().catch(() => '');
+        throw new Error(`Failed to delete reservation ${reservationId}. ${res.status} ${res.statusText}. ${t}`);
+    }
+    return true;
+}
+
+// Hent reservation ud fra dato (admin)
+export async function getReservationByDate(date) {
+    if (!date) throw new Error('getSchedule(date) kræver YYYY-MM-DD');
+    const params = new URLSearchParams({ date });
+    const res = await fetch(`${BASE_URL}/admin/reservations?${params.toString()}`, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+    });
+    if (!res.ok) {
+        const t = await res.text().catch(() => '');
+        throw new Error(`Failed to load schedule for ${date}. ${res.status} ${res.statusText}. ${t}`);
+    }
+    return res.json();
+}
+
+// Henter dagsplan (admin)
+export async function getDailySchedule(date) {
+    if (!date) throw new Error("getSchedule(date) kræver YYYY-MM-DD");
+    const params = new URLSearchParams({ date });
+    const res = await fetch(`${BASE_URL}/admin/schedule?${params.toString()}`, {
+        method: "GET",
+        headers: { "Accept": "application/json" }
+    });
+    if (!res.ok) throw new Error(`Kunne ikke hente skema for ${date}`);
+    return res.json();
+}
+
+
+// Find reservation via telefonnummer (admin)
+export async function searchReservationByPhone(phone) {
+    const param = new URLSearchParams({ phone });
+    const response = await fetch(`${BASE_URL}/admin/search?${param}`);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch reservation by phone: ${response.statusText}`);
+    }
+    return response.json();
+}
+
+
+
 // // Slet en reservation
 // export async function deleteReservation(reservationId) {
 //     const response = await fetch(`${BASE_URL}/admin/reservations/${reservationId}`, {
@@ -237,6 +215,22 @@ export async function patchReservation(reservationId, patch) {
 
 
 // ---- Equipment wrappers ----
+
+// Opretter nyt Equipment til en Activity
+export async function createEquipmentForActivity(activityId, equipment) {
+    const response = await fetch(`${BASE_URL}/admin/activities/${activityId}/equipment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(equipment)
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to create equipment for activity ${activityId}: ${response.statusText}`);
+    }
+
+    return response.json();
+}
+
 
 // Henter alt Equipment for én bestemt Activity
 export async function getEquipmentByActivity(activityId) {

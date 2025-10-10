@@ -1,5 +1,5 @@
 // --- Admin Reservation ---
-import { searchReservation, getSchedule, deleteReservation , patchReservation } from "../api.js";
+import { searchReservationByPhone, getReservationByDate, patchReservation, deleteReservation , } from "../api.js";
 import { navigation } from "../main.js";
 
 
@@ -10,7 +10,7 @@ export async function mount(container) {
     <p>Søg via telefonnummer eller vælg en dato.</p>
     
     <div class="controls">
-        <input type="text" id="searchInput" placeholder="Indtast telefonummer og tryk Enter">
+        <input type="text" id="searchInput" placeholder="Indtast telefonnummer og tryk Enter">
         <input type="date" id="dateFilter">
         <button id="searchBtn">Søg</button>
     </div>
@@ -105,7 +105,7 @@ export async function mount(container) {
         searchBtn.textContent = "Søger...";
 
         try {
-            const reservations = await searchReservation(phone);
+            const reservations = await searchReservationByPhone(phone);
             renderResults(reservations);
 
             // Formateres nummeret til "xx xx xx xx"
@@ -133,7 +133,7 @@ export async function mount(container) {
         dateFilter.disabled = true;
 
         try {
-            const schedule = await getSchedule(date);
+            const schedule = await getReservationByDate(date);
             renderResults(schedule);
             statusBox.textContent = `Viser skema for dato: ${date}`;
         } catch (err) {

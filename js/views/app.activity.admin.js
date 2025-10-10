@@ -3,6 +3,8 @@
 import { getAdminActivities, createActivity, updateActivity, deleteActivity } from "../api.js";
 import { navigation } from "../main.js";
 
+
+// Formular: opret aktivitet
 export async function mount(container) {
     container.innerHTML = `
     <section class="admin-activities">
@@ -18,6 +20,14 @@ export async function mount(container) {
         <input id="maxParticipants" type="number" placeholder="Max deltagere">
         <input id="durationMinutes" type="number" placeholder="Varighed">
         <input id="parallelCourts" type="number" placeholder="Parallelle baner">
+       
+       
+        <h4><Required>Udstyr</Required></h4>
+        <input id="equipmentName" placeholder="Udstyrsnavn">
+        <input id="equipmentTotal" type="number" placeholder="Antal sæt">
+        <input id="equipmentUsable" type="number" placeholder="Brugbare sæt">
+
+       
         <button id="createBtn">Opret aktivitet</button>
       </div>
 
@@ -43,6 +53,52 @@ export async function mount(container) {
             parallelCourts: parseInt(document.getElementById("parallelCourts").value)
         };
 
+        // Udstyrsinfo
+        const equipmentName = document.getElementById("equipmentName").value.trim();
+        const totalSets = parseInt(document.getElementById("equipmentTotal").value);
+        const usableSets = parseInt(document.getElementById("equipmentUsable").value);
+
+        // Validering af udstyrsinput
+        if (!newActivity.name) {
+            alert("Angiv et aktivitetsnavn.");
+            return;
+        }
+
+        if (
+            isNaN(newActivity.minAge) ||
+            isNaN(newActivity.minParticipants) ||
+            isNaN(newActivity.maxParticipants) ||
+            isNaN(newActivity.durationMinutes) ||
+            isNaN(newActivity.parallelCourts)
+        ) {
+            alert("Alle felter for aktivitet skal udfyldes korrekt.");
+            return;
+        }
+
+        // --- Valider udstyr, hvis angivet ---
+        if (equipmentName) {
+            if (isNaN(totalSets) || isNaN(usableSets)) {
+                alert("Udstyrsantal skal være udfyldt med tal.");
+                return;
+            }
+
+            if (usableSets > totalSets) {
+                alert(`Brugbare sæt (${usableSets}) kan ikke være større end totale sæt (${totalSets}).`);
+                document.getElementById("equipmentUsable").value = totalSets;
+                return;
+            }
+
+            // Hvis der er angivet udstyr, tilføj det til objektet
+
+            newActivity.equipmentList = [
+                {
+                    name: equipmentName,
+                    totalSets,
+                    usableSets,
+                },
+            ];
+        }
+
         try {
             await createActivity(newActivity);
             alert("Aktivitet oprettet!");
@@ -60,8 +116,17 @@ export async function mount(container) {
 
 // Tømmer inputfelter efter oprettelse
 function resetForm() {
-    ["name", "minAge", "minParticipants", "maxParticipants", "durationMinutes", "parallelCourts"]
-        .forEach(id => document.getElementById(id).value = "");
+    [
+        "name",
+        "minAge",
+        "minParticipants",
+        "maxParticipants",
+        "durationMinutes",
+        "parallelCourts",
+        "equipmentName",
+        "equipmentTotal",
+        "equipmentUsable"
+    ].forEach(id => (document.getElementById(id).value = ""));
 }
 
 // Hent og vis aktiviteter
