@@ -2,7 +2,7 @@
 
 console.log("App is running");
 
-import { getAvailability } from "../api.js";
+import { getAvailability, postReservation } from "../api.js";
 
 let selectedDate = "";
 let selectedActivityId = "";
@@ -25,13 +25,7 @@ async function submitReservation(reservationInfo) {
             // Mock slutter her
 
         } else {
-            response = await fetch("/api/reservations", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(reservationInfo),
-            })
+           await postReservation(reservationInfo)
         }
 
         if (!response.ok) {
