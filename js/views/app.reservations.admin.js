@@ -11,8 +11,8 @@ export async function mount(container) {
     
     <div class="controls">
         <input type="text" id="searchInput" placeholder="Indtast telefonnummer og tryk Enter">
-        <input type="date" id="dateFilter">
         <button id="searchBtn">Søg</button>
+        <input type="date" id="dateFilter">
     </div>
 
     <p id="statusBox"></p>
@@ -225,15 +225,59 @@ export async function mount(container) {
     }
 
 
-    async function applyUpdate(reservationId, updateBody) {
+   async function applyUpdate(reservationId, updateBody) {
         if (!reservationId) return;
         try {
-            await patchReservation(reservationId, updateBody); // bruger BASE_URL fra api.js
-            alert(`Reservation #${reservationId} er opdateret.`);
-            location.reload();
+            await patchReservation(reservationId, updateBody);
+            
+            statusBox.textContent = `Reservation #${reservationId} er opdateret.`;
+            setTimeout(() => statusBox.textContent = "", 2500);
+
+            const phone = searchInput.value.trim();
+            const date = dateFilter.value;
+
+            let refreshedData;
+            if (phone) {
+                refreshedData = await searchReservationByPhone(phone);
+            } else if (date) {
+                refreshedData = await getReservationByDate(date);
+            }
+
+            if (refreshedData) renderResults(refreshedData);
+
         } catch (err) {
-            alert("Kunne ikke opdatere: " + (err?.message || err));
+            statusBox.textContent = "Kunne ikke opdatere reservation.";
+            console.error(err);
         }
     }
+
+    async function handleDeleteReservation(reservationId) {
+    if (!reservationId) return;
+    if (!confirm(`Slet reservation #${reservationId}?`)) return;
+
+    try {
+        await deleteReservation(reservationId);
+        alert(`Reservation #${reservationId} er slettet.`);
+
+        // Samme princip som ovenfor
+        const phone = searchInput.value.trim();
+        const date = dateFilter.value;
+
+        let refreshedData;
+
+        if (phone) {
+            refreshedData = await searchReservationByPhone(phone);
+        } else if (date) {
+            refreshedData = await getReservationByDate(date);
+        }
+
+        if (refreshedData) {
+            renderResults(refreshedData);
+        }
+
+    } catch (err) {
+        alert("Kunne ikke slette: " + (err?.message || err));
+    }
+}
 
 }
