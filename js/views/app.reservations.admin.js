@@ -29,6 +29,7 @@ export async function mount(container) {
                 <th>Email</th>
                 <th>Telefon</th>
                 <th>Kundetype</th>
+                <th>Oprettet</th>
                 <th>Booking(s)</th>
                 <th></th>
             </tr>
@@ -142,6 +143,22 @@ export async function mount(container) {
         }
     });
 
+    // Hjælpefunktion til at vise korrekt dansk datoformat
+    function formatDate(isoString) {
+        if (!isoString) return "-";
+
+        const date = new Date(isoString);
+        // Dansk format med dato + klokkeslæt
+        return date.toLocaleDateString("da-DK", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
+        }) + " kl. " + date.toLocaleTimeString("da-DK", {
+            hour: "2-digit",
+            minute: "2-digit"
+        });
+    }
+
     // Hjælpefunktion til at vise resultater
     function renderResults(reservations) {
         // Hent både <table> og <tbody>
@@ -183,6 +200,7 @@ export async function mount(container) {
             <option value="BUSINESS" ${result.customerType === "BUSINESS" ? "selected" : ""}>BUSINESS</option>
           </select>
         </td>
+        <td>${formatDate(result.createdAt)}</td>
         <td>${bookings}</td>
         <td>
           <button class="btn-save" data-id="${result.id}">Gem</button>
