@@ -53,23 +53,51 @@ export async function mount(container) {
             parallelCourts: parseInt(document.getElementById("parallelCourts").value)
         };
 
-        // Tjek for udstyr
+        // Udstyrsinfo
         const equipmentName = document.getElementById("equipmentName").value.trim();
         const totalSets = parseInt(document.getElementById("equipmentTotal").value);
         const usableSets = parseInt(document.getElementById("equipmentUsable").value);
 
-        // Hvis der er angivet udstyr, tilføj det til objektet
+        // Validering af udstyrsinput
+        if (!newActivity.name) {
+            alert("Angiv et aktivitetsnavn.");
+            return;
+        }
+
+        if (
+            isNaN(newActivity.minAge) ||
+            isNaN(newActivity.minParticipants) ||
+            isNaN(newActivity.maxParticipants) ||
+            isNaN(newActivity.durationMinutes) ||
+            isNaN(newActivity.parallelCourts)
+        ) {
+            alert("Alle felter for aktivitet skal udfyldes korrekt.");
+            return;
+        }
+
+        // --- Valider udstyr, hvis angivet ---
         if (equipmentName) {
+            if (isNaN(totalSets) || isNaN(usableSets)) {
+                alert("Udstyrsantal skal være udfyldt med tal.");
+                return;
+            }
+
+            if (usableSets > totalSets) {
+                alert(`Brugbare sæt (${usableSets}) kan ikke være større end totale sæt (${totalSets}).`);
+                document.getElementById("equipmentUsable").value = totalSets;
+                return;
+            }
+
+            // Hvis der er angivet udstyr, tilføj det til objektet
+
             newActivity.equipmentList = [
                 {
                     name: equipmentName,
-                    totalSets: totalSets || 0,
-                    usableSets: usableSets || 0
-                }
+                    totalSets,
+                    usableSets,
+                },
             ];
         }
-
-
 
         try {
             await createActivity(newActivity);
