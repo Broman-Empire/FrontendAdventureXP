@@ -1,6 +1,6 @@
 // ---- Equipment View (for Admin) ----
 
-import { getActivities, getEquipmentByActivity, updateEquipment, deleteEquipment } from "../api.js";
+import { getActivities, createEquipmentForActivity,getEquipmentByActivity, updateEquipment, deleteEquipment } from "../api.js";
 import { navigation } from "../main.js";
 
 const useMock = false; //False, når backend er klar
@@ -112,9 +112,58 @@ function renderEquipmentTable(equipmentList) {
     const container = document.getElementById("equipmentTableContainer");
 
     if (!equipmentList || equipmentList.length === 0) {
-        container.innerHTML = `<p>Ingen udstyr fundet for denne aktivitet.</p>`;
+        container.innerHTML = `
+      <p>Ingen udstyr fundet for denne aktivitet.</p>
+      <div class="add-equipment-form">
+        <h3>Tilføj nyt udstyr</h3>
+        <input type="text" id="newEquipmentName" placeholder="Udstyrsnavn">
+        <input type="number" id="newEquipmentTotal" placeholder="Antal sæt" min="0" step="1">
+        <input type="number" id="newEquipmentUsable" placeholder="Brugbare sæt" min="0" step="1">
+        <button id="addEquipmentBtn">Opret udstyr</button>
+      </div>
+    `;
+
+        const addBtn = document.getElementById("addEquipmentBtn");
+        if (addBtn) {
+            addBtn.addEventListener("click", async (event) => {
+                event.preventDefault();
+
+                const name = document.getElementById("newEquipmentName").value.trim();
+                const totalSets = parseInt(document.getElementById("newEquipmentTotal").value);
+                const usableSets = parseInt(document.getElementById("newEquipmentUsable").value);
+                const activityId = document.getElementById("activitySelector").value;
+
+                // --- Validering ---
+                if (!activityId) {
+                    alert("Vælg venligst en aktivitet først.");
+                    return;
+                }
+
+                if (!name || isNaN(totalSets) || isNaN(usableSets)) {
+                    alert("Alle felter skal udfyldes korrekt.");
+                    return;
+                }
+
+                if (usableSets > totalSets) {
+                    alert(`Brugbare sæt (${usableSets}) kan ikke være større end totale sæt (${totalSets}).`);
+                    document.getElementById("newEquipmentUsable").value = totalSets; // sæt feltet tilbage
+                    return;
+                }
+
+                try {
+                    await createEquipmentForActivity(activityId, { name, totalSets, usableSets });
+                    alert("Udstyr oprettet!");
+                    await loadEquipment(activityId); // opdater tabel
+                } catch (err) {
+                    console.error("Fejl ved oprettelse af udstyr:", err);
+                    alert("Kunne ikke oprette udstyr.");
+                }
+            });
+        }
+
         return;
     }
+
 
     // Bygger HTML-tabellen som en String
     const tableHTML = `
@@ -176,7 +225,8 @@ function renderEquipmentTable(equipmentList) {
     // Indsæt tabellen i containeren
     container.innerHTML = tableHTML;
 
-    // 🟢 VIGTIGT: Kald funktionen efter tabellen er sat ind
+
+    // SAVE + DELETE event listeners
     addEquipmentEventListeners(container);
 }
 

@@ -216,6 +216,22 @@ export async function searchReservationByPhone(phone) {
 
 // ---- Equipment wrappers ----
 
+// Opretter nyt Equipment til en Activity
+export async function createEquipmentForActivity(activityId, equipment) {
+    const response = await fetch(`${BASE_URL}/admin/activities/${activityId}/equipment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(equipment)
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to create equipment for activity ${activityId}: ${response.statusText}`);
+    }
+
+    return response.json();
+}
+
+
 // Henter alt Equipment for én bestemt Activity
 export async function getEquipmentByActivity(activityId) {
     const response = await fetch(`${BASE_URL}/admin/activities/${activityId}/equipment`)
