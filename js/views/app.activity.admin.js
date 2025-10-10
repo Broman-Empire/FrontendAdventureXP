@@ -3,6 +3,8 @@
 import { getAdminActivities, createActivity, updateActivity, deleteActivity } from "../api.js";
 import { navigation } from "../main.js";
 
+
+// Formular: opret aktivitet
 export async function mount(container) {
     container.innerHTML = `
     <section class="admin-activities">
@@ -18,6 +20,14 @@ export async function mount(container) {
         <input id="maxParticipants" type="number" placeholder="Max deltagere">
         <input id="durationMinutes" type="number" placeholder="Varighed">
         <input id="parallelCourts" type="number" placeholder="Parallelle baner">
+       
+       
+        <h4><Required>Udstyr</Required></h4>
+        <input id="equipmentName" placeholder="Udstyrsnavn">
+        <input id="equipmentTotal" type="number" placeholder="Antal sæt">
+        <input id="equipmentUsable" type="number" placeholder="Brugbare sæt">
+
+       
         <button id="createBtn">Opret aktivitet</button>
       </div>
 
@@ -43,6 +53,24 @@ export async function mount(container) {
             parallelCourts: parseInt(document.getElementById("parallelCourts").value)
         };
 
+        // Tjek for udstyr
+        const equipmentName = document.getElementById("equipmentName").value.trim();
+        const totalSets = parseInt(document.getElementById("equipmentTotal").value);
+        const usableSets = parseInt(document.getElementById("equipmentUsable").value);
+
+        // Hvis der er angivet udstyr, tilføj det til objektet
+        if (equipmentName) {
+            newActivity.equipmentList = [
+                {
+                    name: equipmentName,
+                    totalSets: totalSets || 0,
+                    usableSets: usableSets || 0
+                }
+            ];
+        }
+
+
+
         try {
             await createActivity(newActivity);
             alert("Aktivitet oprettet!");
@@ -60,8 +88,17 @@ export async function mount(container) {
 
 // Tømmer inputfelter efter oprettelse
 function resetForm() {
-    ["name", "minAge", "minParticipants", "maxParticipants", "durationMinutes", "parallelCourts"]
-        .forEach(id => document.getElementById(id).value = "");
+    [
+        "name",
+        "minAge",
+        "minParticipants",
+        "maxParticipants",
+        "durationMinutes",
+        "parallelCourts",
+        "equipmentName",
+        "equipmentTotal",
+        "equipmentUsable"
+    ].forEach(id => (document.getElementById(id).value = ""));
 }
 
 // Hent og vis aktiviteter

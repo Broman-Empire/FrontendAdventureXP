@@ -104,7 +104,7 @@ export async function mount(container) {
         searchBtn.textContent = "Søger...";
 
         try {
-            const reservations = await searchReservation(phone);
+            const reservations = await searchReservationByPhone(phone);
             renderResults(reservations);
 
             // Formateres nummeret til "xx xx xx xx"
@@ -132,7 +132,7 @@ export async function mount(container) {
         dateFilter.disabled = true;
 
         try {
-            const schedule = await getSchedule(date);
+            const schedule = await getReservationByDate(date);
             renderResults(schedule);
             statusBox.textContent = `Viser skema for dato: ${date}`;
         } catch (err) {
