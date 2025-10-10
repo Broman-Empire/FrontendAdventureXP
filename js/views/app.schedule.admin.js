@@ -101,8 +101,11 @@ export function renderSchedule(rows) {
           <th>Booking ID</th>
           <th>Aktivitetsnavn</th>
           <th>Starttidspunkt</th>
+          <th>Sluttidspunkt</th>
           <th>Deltagere</th>
+          <th>Kundenavn</th>
           <th>Kapacitet</th>
+          
         </tr>
       </thead>
       <tbody>
@@ -113,7 +116,9 @@ export function renderSchedule(rows) {
                 <td>${row.bookingId}</td>
                 <td>${row.activityName}</td>
                 <td>${formatDateTime(row.startsAt)}</td>
+                <td>${formatDateTime(row.endsAt)}</td>
                 <td>${row.participants}</td>
+                <td>${row.contactName}</td>
                 <td>${row.totalParticipants}</td>
               </tr>
             `
