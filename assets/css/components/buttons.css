@@ -36,19 +36,55 @@
     background: #0f9d58;
 }
 
-/* Reset / ghost button */
-.btn--reset {
+/* Secondary button */
+.btn--ghost{
+    background: transparent;
+    border-color: rgba(255,255,255,0.25);
+    color: var(--color-text);
+}
+
+.btn--ghost:hover{
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(255,255,255,0.4);
+}
+
+.btn--reset{
     background: var(--primary);
     border-color: transparent;
     color: var(--color-text);
 }
 
-.btn--reset:hover {
+.btn--reset:hover{
     background: #fbbc04;
     color: var(--color-bg);
 }
 
+.btn--confirm {
+    background: #2ecc71;
+    border-color: transparent;
+    color: var(--color-bg);
+}
+
+.btn--confirm:hover {
+    background: #27ae60;
+}
+
+.back-btn{
+    margin-top:1.5rem;
+    padding:.6rem 1.2rem;
+    border-radius: var(--radius-sm);
+    border:1px solid rgba(255,255,255,0.25);
+    background: transparent;
+    color: var(--color-text);
+    font-family: var(--font-heading);
+    letter-spacing:.08em;
+    cursor:pointer;
+}
+
+.back-btn:hover{
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(255,255,255,0.4);
+}
+
 /* Sizes */
-.btn--sm{ padding:.45rem .75rem; font-size: var(--fs-14); }
 .btn--lg{ padding:.8rem 1.25rem; font-size: var(--fs-20); }
-.btn--block{ display:flex; width:100%; }

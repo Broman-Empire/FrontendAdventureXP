@@ -212,14 +212,12 @@ export async function mount(container) {
     container.innerHTML = getBookingMarkup();
 
     refs = {
-        typeStep: container.querySelector("[data-step='type']"),
         steps: {
             type: container.querySelector("[data-step='type']"),
             contact: container.querySelector("[data-step='contact']"),
             slot: container.querySelector("[data-step='slot']"),
             group: container.querySelector("[data-step='group']")
         },
-        contactHint: container.querySelector("[data-role='contactHint']"),
         privateInputs: [...container.querySelector("[data-scope='private']").querySelectorAll("input")],
         companyInputs: [...container.querySelector("[data-scope='company']").querySelectorAll("input")],
         privateFields: container.querySelector("[data-scope='private']"),
@@ -385,6 +383,14 @@ export async function mount(container) {
         const slot = state.slots[state.slotIndex];
         const activity = state.activities.find((item) => String(item.id) === state.activityId); // find selected activity
 
+        if (!refs.minAge.reportValidity()) {
+            showStep(refs.steps, "group");
+            refs.minAge.focus();
+            return;
+        }
+
+        state.minAge = Number(refs.minAge.value) || 0;
+
         if (activity?.minAge && state.minAge < activity.minAge) {
             alert(`Minimum age for ${activity.name} is ${activity.minAge}.`);
             return;
@@ -398,13 +404,27 @@ export async function mount(container) {
         // populate summary for confirmation
         refs.summary.innerHTML = `
           <div class="booking-summary__panel">
-            <h3>Review Booking</h3>
-            <p><strong>Activity:</strong> ${activity?.name || "Unknown"}</p>
-            <p><strong>Date:</strong> ${formatDateHuman(state.date)}</p>
-            <p><strong>Time:</strong> ${formatTime(slot.start)}</p>
-            <p><strong>Participants:</strong> ${state.participants}</p>
+            <h3 class="booking-summary__title">Review Booking</h3>
+            <dl class="booking-summary__details">
+              <div class="booking-summary__row">
+                <dt>Activity</dt>
+                <dd>${activity?.name || "Unknown"}</dd>
+              </div>
+              <div class="booking-summary__row">
+                <dt>Date</dt>
+                <dd>${formatDateHuman(state.date)}</dd>
+              </div>
+              <div class="booking-summary__row">
+                <dt>Time</dt>
+                <dd>${formatTime(slot.start)}</dd>
+              </div>
+              <div class="booking-summary__row">
+                <dt>Participants</dt>
+                <dd>${state.participants}</dd>
+              </div>
+            </dl>
             <div class="booking-summary__actions">
-              <button type="button" class="btn" data-action="summary-confirm">Looks good</button>
+              <button type="button" class="btn btn--confirm" data-action="summary-confirm">Looks good</button>
               <button type="button" class="btn btn--ghost" data-action="summary-edit">Make changes</button>
             </div>
           </div>
@@ -464,9 +484,10 @@ export async function mount(container) {
                 refs.confirmBtn.disabled = true;
                 revealStep("group");
                 showStep(refs.steps, "group");
+                const reference = reservation?.reference || reservation?.id || reservation?.bookingId;
                 alert(
-                    reservation?.reference // show reference if available
-                        ? `Booking confirmed! Reference: ${reservation.reference}`
+                    reference
+                        ? `Booking confirmed! Reference No: ${reference}`
                         : "Booking confirmed! Your slot is now reserved."
                 );
                 // if error in response from server:
