@@ -305,11 +305,9 @@ export async function mount(container) {
                       type: "company",
                       companyName: values.companyName || "",
                       cvrNumber: values.cvrNumber || "",
-                      contactName: values.contactName
-                          ? `${values.companyName || ""}${values.companyName ? "; " : ""}${values.contactName}` // combine names to one string (not handled on server-side)
-                          : values.companyName || "",
+                      contactName: values.contactName || "",
                       email: values.email,
-                      phone: values.phone
+                      phone: values.phone || ""
                   }
                 : {
                       type: "private",
@@ -466,11 +464,21 @@ export async function mount(container) {
             target.textContent = "Booking...";
 
             try { // submit reservation to server
+                // combine company name + contact name to same field
+                const companyContact = state.customerType === "company"
+                    ? [state.contact?.companyName, state.contact?.contactName].filter(Boolean).join(";")
+                    : state.contact?.contactName || "";
+                // combine email + CVR to same field (phone no. link too long in db)
+                const companyEmail = state.customerType === "company"
+                    ? [state.contact?.email, state.contact?.cvrNumber].filter(Boolean).join(";")
+                    : state.contact?.email || "";
+                const phoneField = state.contact?.phone || "";
+
                 const reservation = await submitReservation({
                     customerType: state.customerType,
-                    contactName: state.contact?.contactName || "",
-                    email: state.contact?.email || "",
-                    phone: state.contact?.phone || "",
+                    contactName: companyContact,
+                    email: companyEmail,
+                    phone: phoneField,
                     activityId: state.activityId ? Number(state.activityId) : null,
                     participants: Number(state.participants) || 0,
                     groupMinAge: Number(state.minAge) || 0,
