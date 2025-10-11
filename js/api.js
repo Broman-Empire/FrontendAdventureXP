@@ -1,6 +1,7 @@
 // Samler alle API-kald = GET, POST, UPDATE, PATCH, DELETE
 
 const BASE_URL = 'http://localhost:8080/api';
+const RESERVATIONS_URL = 'http://localhost:8080/reservations';
 
 // TODO (backend & server-side):
 // - Check @PostMapping endpoint: /api/reservations
@@ -132,7 +133,7 @@ export async function getAvailability(activityId, fromDate, toDate, openTime, cl
 
 // Create a new reservation
 export async function postReservation(payload){
-    const response = await fetch(`${BASE_URL}/reservations`, {
+    const response = await fetch(RESERVATIONS_URL, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

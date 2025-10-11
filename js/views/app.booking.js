@@ -432,15 +432,17 @@ export async function mount(container) {
             target.disabled = true;
             target.textContent = "Booking...";
 
-            try {
+            try { // submit reservation to server
                 const reservation = await submitReservation({
                     customerType: state.customerType,
-                    contact: state.contact,
-                    participants: state.participants,
-                    minAge: state.minAge,
-                    activityId: state.activityId,
-                    start: slot.start,
-                    end: slot.end
+                    contactName: state.contact?.contactName || "",
+                    email: state.contact?.email || "",
+                    phone: state.contact?.phone || "",
+                    activityId: state.activityId ? Number(state.activityId) : null,
+                    participants: Number(state.participants) || 0,
+                    groupMinAge: Number(state.minAge) || 0,
+                    slotId: slot.id ?? slot.slotId ?? null,
+                    startsAt: slot.start || null
                 });
 
                 // reset state except activities and preview
