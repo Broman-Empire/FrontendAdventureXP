@@ -26,22 +26,26 @@
 }
 
 /* Variants */
+/* Confirm / primary button */
 .btn--primary{
     background: var(--primary);
     border-color: transparent;
     color: var(--color-text);
 }
 .btn--primary:hover{
-    background: var(--primary-700);
+    background: #0f9d58;
 }
 
-.btn--ghost{
-    background: transparent;
-    border-color: var(--primary);
+/* Reset / ghost button */
+.btn--reset {
+    background: var(--primary);
+    border-color: transparent;
     color: var(--color-text);
 }
-.btn--ghost:hover{
-    background: rgba(0,208,126,.08);
+
+.btn--reset:hover {
+    background: #fbbc04;
+    color: var(--color-bg);
 }
 
 /* Sizes */

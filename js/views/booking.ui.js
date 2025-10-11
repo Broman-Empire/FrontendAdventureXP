@@ -116,7 +116,14 @@ export function getBookingMarkup() {
               </div>
             </div>
             <div class="booking-field"><label for="minAge">Minimum age in group</label><input id="minAge" type="number" min="0" required></div>
-            <div class="booking-step__actions"><button class="btn btn--primary btn-booking" type="button" data-action="confirm" disabled>Confirm booking</button></div>
+            <div class="booking-step__actions">
+              <div class="booking-step__actions-left">
+                <button class="btn btn--primary btn--reset" type="button" data-action="reset">Reset booking</button>
+              </div>
+              <div class="booking-step__actions-right">
+                <button class="btn btn--primary btn-booking" type="button" data-action="confirm" disabled>Confirm booking</button>
+              </div>
+            </div>
           </section>
         </div>
 

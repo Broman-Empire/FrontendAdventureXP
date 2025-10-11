@@ -413,6 +413,19 @@ export async function mount(container) {
         refs.summary.dataset.slotIndex = String(state.slotIndex);
     });
 
+    // reset booking button
+    container.querySelector("[data-action='reset']").addEventListener("click", () => {
+        state.activityId = "";
+        state.date = "";
+        state.slotIndex = null;
+        state.slots = [];
+        refs.activitySelect.value = "";
+        refs.slotsContainer.innerHTML = `<p class="booking-empty">Select activity and date to see open slots.</p>`;
+        refs.capacityNote.textContent = "";
+        refs.confirmBtn.disabled = true;
+        showStep(refs.steps, "slot");
+    });
+
     // summary actions (edit or confirm)
     refs.summary.addEventListener("click", async (event) => {
         const target = event.target;
