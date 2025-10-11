@@ -55,7 +55,6 @@ export async function mount(container) {
     // Navigation buttons (header)
     const navLinks = container.querySelectorAll(".frontpage-header-link[data-nav]");
     const navMap = {
-        frontpage: "frontpage",
         home: "frontpage",
         admin: "admin"
     };
@@ -109,8 +108,6 @@ export async function mount(container) {
     function formatDetails(activity) {
         const bits = [];
         if (activity.minAge) bits.push(`Min age ${activity.minAge}+`);
-        if (activity.maxParticipants) bits.push(`Max ${activity.maxParticipants} pax`);
-        if (activity.minParticipants) bits.push(`Min ${activity.minParticipants} pax`);
         if (activity.description) bits.push(activity.description);
         return bits.length ? bits.join(" · ") : "Check back soon";
     }
