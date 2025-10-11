@@ -109,20 +109,6 @@ export async function deleteActivity(id) {
     }
 }
 
-// Fetch availability for a specific activity and date
-export async function getAvailability(activityId, fromDate, toDate, openTime, closeTime) {
-    const params = new URLSearchParams({
-        fromDate,
-        toDate,
-        openTime,
-        closeTime
-    });
-    const response = await fetch(`${BASE_URL}/availability/${activityId}?${params.toString()}`);
-    if (!response.ok) {
-        throw new Error(`Failed to fetch availability: ${response.statusText}`);
-    }
-    return response.json();
-}
 // Fetch availability for a specific activity on a single day
   export async function getAvailabilityForDay(activityId, date) {
     return getAvailability(activityId, date, date, "00:00:00", "23:59:00");
