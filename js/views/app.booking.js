@@ -1,161 +1,473 @@
-// ---- Bookingformular for brugeren ----
 
-console.log("App is running");
+import { navigation } from "../main.js";
+import { getActivities, getAvailabilityForDay, postReservation } from "../api.js";
+import {
+    setBookingUIDependencies,
+    getBookingMarkup,
+    renderSlots,
+    renderWeekdayHeader,
+    renderPreviewCalendar,
+    renderPreviewSlots,
+    populateActivitySelect,
+    populatePreviewActivitySelect,
+    updatePreviewBadge,
+    formatDateHuman,
+    formatTime
+} from "./booking.ui.js";
 
-import { getAvailability, postReservation } from "../api.js";
+// calendar settings
+const MAX_PREVIEW_LOOKAHEAD = 21; // days
+const CALENDAR_CELLS = 42; // 6 weeks
 
-let selectedDate = "";
-let selectedActivityId = "";
+const initialState = {
+    activities: [],
+    customerType: null,
+    contact: {},
+    contactReady: false,
+    participants: 1,
+    minAge: "",
+    activityId: "",
+    date: "",
+    slotIndex: null,
+    slots: [],
+    previewActivity: "",
+    previewMonth: null,
+    previewDate: "",
+    previewDays: []
+};
 
+// mutable state
+const state = { ...initialState };
+let refs = {};
 
-// Sender reservation til backend
-async function submitReservation(reservationInfo) {
+// month helper
+function startOfMonth(date) {
+    return new Date(date.getFullYear(), date.getMonth(), 1);
+}
 
-    try {
+function addMonths(date, delta) {
+    return new Date(date.getFullYear(), date.getMonth() + delta, 1);
+}
 
-        // Mocker en reservation indtil backend er klar
-        const useMock = false; // Skal være false, når backend er klar
+function resetState() {
+    Object.assign(state, {
+        ...initialState,
+        previewMonth: startOfMonth(new Date())
+    });
+}
 
-        let response;
+// show/hide steps
+function showStep(steps, activeKey) {
+    Object.entries(steps).forEach(([key, section]) => {
+        const shouldHide = key !== activeKey && !section.classList.contains("booking-step--revealed");
+        section.classList.toggle("booking-step--hidden", shouldHide);
+    });
+}
+// reveal step permanently
+function revealStep(stepKey) {
+    const step = refs.steps[stepKey];
+    if (!step) return;
+    step.classList.add("booking-step--revealed");
+    step.classList.remove("booking-step--hidden");
+}
 
-        // Mock starter her
-        if (useMock) {
-            await new Promise(resolve => setTimeout(resolve, 500)); //Viser popup-bekræftelse 0,5 sek efter submit
-            response = { ok: true, json: async () => ({ id: 101, ...reservationInfo})}
-            // Mock slutter her
+// collect inputs
+function collectInputs(inputs) {
+    const values = {};
+    let valid = true;
 
-        } else {
-           await postReservation(reservationInfo)
-        }
+    inputs.forEach((input) => {
+        const value = input.value.trim();
+        if (input.required && !value) valid = false; // check required
+        values[input.name || input.id] = value; // prefer name, fallback to id
+    });
 
-        if (!response.ok) {
-            throw new Error("Kunne ikke oprette reservation.");
-        }
+    return { valid, values };
+}
 
-        const result = await response.json();
+// iso helper
+const formatDateISO = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+};
 
-        // Viser bekræftelses-pop-up
-        showPopup(`Reservation bekræftet! Din ordrebekræftelse har ID: ${result.id}`);
+// calendar grid
+function buildMonthGrid(monthDate) {
+    const first = startOfMonth(monthDate);
+    const anchor = new Date(first);
+    anchor.setDate(first.getDate() - ((first.getDay() + 6) % 7)); // back to Monday
 
-    } catch (error) {
-        console.error("Fejl ved reservation:", error);
-        showPopup("Der opstod en fejl under bookingen!");
+    return Array.from({ length: CALENDAR_CELLS }, (_, index) => { // 42 cells (6 weeks)
+        const day = new Date(anchor);
+        day.setDate(anchor.getDate() + index); // increment day
+        return {
+            iso: formatDateISO(day),
+            date: day,
+            inMonth: day.getMonth() === monthDate.getMonth()
+        };
+    });
+}
+
+async function fetchSlots(activityId, isoDate) {
+    if (!activityId || !isoDate) return [];
+    const response = await getAvailabilityForDay(activityId, isoDate).catch(() => []);
+    return (response || []).filter((slot) => !slot.soldOut);
+}
+
+// preload days
+async function buildPreviewDays(activityId) {
+    const days = [];
+    const today = new Date();
+
+    // for each loop that looks ahead
+    for (let offset = 0; offset < MAX_PREVIEW_LOOKAHEAD; offset += 1) { // next 21 days
+        const day = new Date(today);
+        day.setDate(today.getDate() + offset);
+        const iso = formatDateISO(day);
+        const slots = await fetchSlots(activityId, iso);
+        days.push({ iso, slots });
     }
+
+    state.previewDays = days;
 }
 
-// Hjælpemetode for popup-besked
-function showPopup(message) {
-    alert(message);
+// set preview date
+async function handlePreviewDate(isoDate) {
+    state.previewDate = isoDate;
+    await renderPreviewCalendar();
+    await renderPreviewSlots(state.previewDate);
 }
 
-// shows availability in the UI
-function showAvailability(availability) {
-    const resultsContainer = document.getElementById("availability-results");
-    resultsContainer.innerHTML = ""; // Clear previous results
+// choose slot
+function handleSlotSelect(index) {
+    state.slotIndex = index;
+    const slot = state.slots[index];
+    if (!slot) return;
 
-    if (!availability || availability.length === 0) {
-        resultsContainer.textContent = "No available slots.";
+    // show capacity
+    refs.capacityNote.textContent = `Seats available: ${slot.remaining} (capacity ${slot.capacity})`;
+
+    // if contact not ready, go back to contact step
+    if (!state.contactReady) {
+        showStep(refs.steps, "contact");
         return;
     }
 
-    const ul = document.createElement("ul"); // list to display availability
-    availability.forEach(slot => {
-        const li = document.createElement("li"); // list item for each slot
-        li.textContent = `Start: ${slot.start} | End: ${slot.end} | Capacity: ${slot.capacity} | Available: ${slot.remaining}` +
-            (slot.soldOut ? " (Sold Out)" : "");
-        ul.appendChild(li); // add list item to list
-    });
-    resultsContainer.appendChild(ul);
+    showStep(refs.steps, "group");
+    refs.confirmBtn.disabled = false;
 }
 
-// TODO: Denne metode virker ikke
-// Load availability data and display it
-async function loadAvailability(activityId, date) {
-    try {
-        const availability = await getAvailability(activityId, date);
-        console.log("Availability data:", availability);
+// clear contacts
+function resetContactForms() {
+    [...refs.privateInputs, ...refs.companyInputs].forEach((input) => {
+        input.value = ""; // clear value
+    });
+    state.contactReady = false;
+}
 
-        //Filter sold out slots
-        const availableSlots = availability.filter(slot => !slot.soldOut);
-        showAvailability(availableSlots);
-    } catch (error) {
-        console.error("Error loading availability:", error);
+// submit booking
+async function submitReservation(payload) {
+    const reservation = await postReservation(payload);
+
+    // if we have activity and date, refresh slots
+    if (state.activityId && state.date) {
+        state.slots = await fetchSlots(state.activityId, state.date); // refresh slots
+        renderSlots(refs.slotsContainer, state.slots, handleSlotSelect); // re-render slots
+        state.slotIndex = null;
+        refs.capacityNote.textContent = ""; // clear capacity note
     }
+
+    // if preview activity matches current activity, update preview days
+    if (state.previewActivity === state.activityId) {
+        const previewDay = state.previewDays.find((day) => day.iso === state.date); // find matching day
+        if (previewDay) previewDay.slots = state.slots;
+        await renderPreviewCalendar();
+        await renderPreviewSlots(state.previewDate || state.date || ""); // re-render preview slots
+    }
+
+    return reservation;
 }
 
-// Handle date change event
-async function onDateChange(date){
-    selectedDate =  date;
-    await loadAvailability(selectedActivityId, date);
+function setPreviewDependencies() {
+    setBookingUIDependencies({
+        state,
+        refs,
+        fetchSlots,
+        buildPreviewDays,
+        handlePreviewDate,
+        handleSlotSelect,
+        buildMonthGrid,
+        showStep
+    });
 }
 
-// Mount til booking form
 export async function mount(container) {
-    // Opret en form til at indtaste information
-    const form = document.createElement("form");
+    resetState();
 
-    // Laver inputfelter til formen
-    form.appendChild(createInput("Kundetype", "customerType"));
-    form.appendChild(createInput("Kontaktnavn", "contactName"));
-    form.appendChild(createInput("Email", "email", "email"));
-    form.appendChild(createInput("Telefonnummer", "phone", "tel"));
-    form.appendChild(createInput("Aktivitet", "activityId", "number"));
-    form.appendChild(createInput("Start", "start", "datetime-local"));
-    form.appendChild(createInput("Antal personer", "participants", "number"));
+    state.activities = await getActivities().catch(() => []);
+    state.previewActivity = state.activities[0]?.id ? String(state.activities[0].id) : "";
 
-    // Laver en submitknap til formen
-    const submitBtn = document.createElement("button");
-    submitBtn.type = "submit";
-    submitBtn.textContent = "Book";
-    // Smider knappen på formen
-    form.appendChild(submitBtn);
+    container.innerHTML = getBookingMarkup();
 
-    // Smider formen i vores container
-    container.appendChild(form);
+    refs = {
+        typeStep: container.querySelector("[data-step='type']"),
+        steps: {
+            type: container.querySelector("[data-step='type']"),
+            contact: container.querySelector("[data-step='contact']"),
+            slot: container.querySelector("[data-step='slot']"),
+            group: container.querySelector("[data-step='group']")
+        },
+        contactHint: container.querySelector("[data-role='contactHint']"),
+        privateInputs: [...container.querySelector("[data-scope='private']").querySelectorAll("input")],
+        companyInputs: [...container.querySelector("[data-scope='company']").querySelectorAll("input")],
+        privateFields: container.querySelector("[data-scope='private']"),
+        companyFields: container.querySelector("[data-scope='company']"),
+        participants: container.querySelector("[data-role='participants']"),
+        minAge: container.querySelector("#minAge"),
+        activitySelect: container.querySelector("#activitySelect"),
+        slotsContainer: container.querySelector("[data-role='slots']"),
+        confirmBtn: container.querySelector("[data-action='confirm']"),
+        capacityNote: container.querySelector("[data-role='capacity']"),
+        previewActivity: container.querySelector("[data-role='previewActivity']"),
+        previewMonth: container.querySelector("[data-role='previewMonth']"),
+        previewWeekdays: container.querySelector("[data-role='previewWeekdays']"),
+        previewGrid: container.querySelector("[data-role='previewGrid']"),
+        previewSlots: container.querySelector("[data-role='previewSlots']"),
+        previewBadge: container.querySelector("[data-role='previewBadge']"),
+        previewPrev: container.querySelector("[data-action='preview-prev']"),
+        previewNext: container.querySelector("[data-action='preview-next']"),
+        closeBtn: container.querySelector("[data-action='close']"),
+        summary: container.parentElement.querySelector("[data-role='summary']"),
+        container
+    };
 
-    // EventListener for activityId change
-    form.activityId.addEventListener("change", (e) => {
-        selectedActivityId = e.target.value;
+    setPreviewDependencies();
+
+    // unlock step 1 by default
+    refs.steps.type.classList.add("booking-step--revealed");
+
+    // close button returns to frontpage
+    refs.closeBtn.addEventListener("click", () => navigation("frontpage"));
+
+    // setup dropdowns and calendar
+    renderWeekdayHeader(refs.previewWeekdays);
+    populateActivitySelect(refs.activitySelect, state.activities);
+
+    if (state.previewActivity) {
+        populatePreviewActivitySelect(refs.previewActivity, state.activities);
+        refs.previewActivity.value = state.previewActivity;
+        updatePreviewBadge();
+        await renderPreviewCalendar();
+    } else {
+        refs.previewActivity.innerHTML = "";
+        updatePreviewBadge();
+    }
+
+    // event listeners
+
+    // customer type change
+    container.querySelectorAll("input[name='customer-type']").forEach((radio) => {
+        radio.addEventListener("change", () => {
+            if (state.customerType !== radio.value) resetContactForms();
+
+            state.customerType = radio.value;
+            const isCompany = state.customerType === "company";
+
+            refs.companyFields.classList.toggle("booking-step--hidden", !isCompany);
+            refs.privateFields.classList.toggle("booking-step--hidden", isCompany);
+            revealStep("contact");
+            showStep(refs.steps, "contact");
+        });
     });
 
-    // EventListener for date change
-    form.start.addEventListener("change", (e) => {
-        onDateChange(e.target.value);
+    container.querySelector("[data-action='contact-next']").addEventListener("click", () => {
+        if (!state.customerType) {
+            alert("Please choose customer type first.");
+            showStep(refs.steps, "type");
+            return;
+        }
+
+        // collect input values
+        const inputs = state.customerType === "company" ? refs.companyInputs : refs.privateInputs;
+        const { valid, values } = collectInputs(inputs);
+
+        // if not valid, show errors and return
+        if (!valid) {
+            showStep(refs.steps, "contact");
+            inputs.forEach((input) => input.reportValidity());
+            return;
+        }
+
+        // build contact object
+        state.contact =
+            state.customerType === "company"
+                ? {
+                      type: "company",
+                      companyName: values.companyName || "",
+                      cvrNumber: values.cvrNumber || "",
+                      contactName: values.contactName
+                          ? `${values.companyName || ""}${values.companyName ? "; " : ""}${values.contactName}` // combine names to one string (not handled on server-side)
+                          : values.companyName || "",
+                      email: values.email,
+                      phone: values.phone
+                  }
+                : {
+                      type: "private",
+                      contactName: values.contactName,
+                      email: values.email,
+                      phone: values.phone
+                  };
+
+        state.contactReady = true;
+        revealStep("slot");
+        revealStep("group");
+        showStep(refs.steps, "slot");
     });
 
-    // EventListener til submit. Kan sandsynligvis også ligge udenfor funktionen
-    form.addEventListener("submit",  async(e) => {
-        e.preventDefault(); // Sørger for at vi ikke reloader siden og sletter alt i formen
-        const payload = buildPayload(form);
-        await submitReservation(payload) // Submitter formularen med data
+    // participant counter
+    container.querySelectorAll("[data-counter]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            if (btn.dataset.counter === "+") state.participants += 1;
+            if (btn.dataset.counter === "-" && state.participants > 1) state.participants -= 1;
+            refs.participants.textContent = state.participants;
+        });
+    });
+
+    // activity select change
+    refs.activitySelect.addEventListener("change", async () => {
+        state.activityId = refs.activitySelect.value;
+        state.date = "";
+        state.slotIndex = null;
+        refs.capacityNote.textContent = "";
+        refs.slotsContainer.innerHTML = `<p class="booking-empty">Pick a date to see available times →</p>`;
+
+        if (state.activityId) {
+            state.slots = await fetchSlots(state.activityId, state.date);
+        }
+    });
+
+    // preview activity change
+    refs.previewActivity.addEventListener("change", async () => {
+        state.previewActivity = refs.previewActivity.value;
+        state.previewMonth = startOfMonth(new Date(state.previewMonth));
+        state.previewDate = "";
+        state.previewDays = [];
+        updatePreviewBadge();
+        await renderPreviewCalendar();
+        await renderPreviewSlots("");
+        if (state.contactReady) {
+            revealStep("slot");
+            revealStep("group");
+            showStep(refs.steps, "slot");
+        }
+    });
+
+    // preview month navigation
+    refs.previewPrev.addEventListener("click", async () => {
+        state.previewMonth = addMonths(state.previewMonth, -1); // previous month
+        await renderPreviewCalendar();
+    });
+
+    refs.previewNext.addEventListener("click", async () => {
+        state.previewMonth = addMonths(state.previewMonth, 1); // next month
+        await renderPreviewCalendar();
+    });
+
+    // slot selection
+    refs.confirmBtn.addEventListener("click", async () => {
+        if (state.slotIndex === null) {
+            alert("Select a slot first.");
+            return;
+        }
+
+        const slot = state.slots[state.slotIndex];
+        const activity = state.activities.find((item) => String(item.id) === state.activityId); // find selected activity
+
+        if (activity?.minAge && state.minAge < activity.minAge) {
+            alert(`Minimum age for ${activity.name} is ${activity.minAge}.`);
+            return;
+        }
+
+        if (state.participants > slot.remaining) {
+            alert("Too many participants for that slot.");
+            return;
+        }
+
+        // populate summary for confirmation
+        refs.summary.innerHTML = `
+          <div class="booking-summary__panel">
+            <h3>Review Booking</h3>
+            <p><strong>Activity:</strong> ${activity?.name || "Unknown"}</p>
+            <p><strong>Date:</strong> ${formatDateHuman(state.date)}</p>
+            <p><strong>Time:</strong> ${formatTime(slot.start)}</p>
+            <p><strong>Participants:</strong> ${state.participants}</p>
+            <div class="booking-summary__actions">
+              <button type="button" class="btn" data-action="summary-confirm">Looks good</button>
+              <button type="button" class="btn btn--ghost" data-action="summary-edit">Make changes</button>
+            </div>
+          </div>
+        `;
+        refs.summary.classList.remove("booking-summary--hidden");
+        refs.summary.dataset.slotIndex = String(state.slotIndex);
+    });
+
+    // summary actions (edit or confirm)
+    refs.summary.addEventListener("click", async (event) => {
+        const target = event.target;
+        if (target.matches("[data-action='summary-edit']")) {
+            refs.summary.classList.add("booking-summary--hidden"); // hide summary
+            refs.confirmBtn.disabled = false; // re-enable confirm button
+            showStep(refs.steps, "slot"); // go back to slot selection
+            return;
+        }
+        // confirm booking
+        if (target.matches("[data-action='summary-confirm']")) {
+            const index = Number(refs.summary.dataset.slotIndex || state.slotIndex);
+            const slot = state.slots[index];
+            if (!slot) return;
+
+            const originalText = target.textContent;
+            target.disabled = true;
+            target.textContent = "Booking...";
+
+            try {
+                const reservation = await submitReservation({
+                    customerType: state.customerType,
+                    contact: state.contact,
+                    participants: state.participants,
+                    minAge: state.minAge,
+                    activityId: state.activityId,
+                    start: slot.start,
+                    end: slot.end
+                });
+
+                // reset state except activities and preview
+                refs.summary.classList.add("booking-summary--hidden");
+                delete refs.summary.dataset.slotIndex;
+                refs.confirmBtn.disabled = true;
+                revealStep("group");
+                showStep(refs.steps, "group");
+                alert(
+                    reservation?.reference // show reference if available
+                        ? `Booking confirmed! Reference: ${reservation.reference}`
+                        : "Booking confirmed! Your slot is now reserved."
+                );
+                // if error in response from server:
+            } catch (error) {
+                console.error(error);
+                alert(`Booking failed: ${error?.message || "Please try again."}`);
+                refs.confirmBtn.disabled = false;
+            } finally {
+                target.disabled = false;
+                target.textContent = originalText; 
+            }
+        }
+    });
+
+    // min age input
+    refs.minAge.addEventListener("change", (event) => {
+        state.minAge = Number(event.target.value) || 0;
     });
 }
-
-function buildPayload(form) {
-    const formData = new FormData(form); // Gemmer formens data
-    const data = Object.fromEntries(formData.entries()); // Konverterer til et objekt
-    console.log("Submitted data: ", data); // Logger det i konsollen, hvis vi skal kunne tjekke det
-
-    return data;
-}
-
-// Hjælpefunktion til at oprette inputfelter til en form. Bruges i mount()
-function createInput(labelText, name, type = "text") {
-    const wrapper = document.createElement("div"); // Laver en div med DOM
-
-    const label = document.createElement("label");
-    label.textContent = labelText;
-    label.setAttribute("for", name);
-
-    const input = document.createElement("input");
-    input.type = type;
-    input.name = name;
-    input.id = name;
-
-    wrapper.appendChild(label);
-    wrapper.appendChild(document.createElement("br"));
-    wrapper.appendChild(input);
-
-    return wrapper;
-}
-

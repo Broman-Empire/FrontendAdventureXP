@@ -108,6 +108,24 @@ export async function deleteActivity(id) {
     }
 }
 
+// Fetch availability for a specific activity and date
+export async function getAvailability(activityId, fromDate, toDate, openTime, closeTime) {
+    const params = new URLSearchParams({
+        fromDate,
+        toDate,
+        openTime,
+        closeTime
+    });
+    const response = await fetch(`${BASE_URL}/availability/${activityId}?${params.toString()}`);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch availability: ${response.statusText}`);
+    }
+    return response.json();
+}
+// Fetch availability for a specific activity on a single day
+  export async function getAvailabilityForDay(activityId, date) {
+    return getAvailability(activityId, date, date, "00:00:00", "23:59:00");
+}
 
 
 // ---- Reservation wrappers ----
@@ -127,6 +145,18 @@ export async function postReservation(payload){
     return response.json();
 }
 
+// Henter reservation for at vise schedule
+export async function getReservations(date) {
+    let url = `${BASE_URL}/admin/reservations`;
+    if (date) {
+        url += `?date=${date}`; // Hvis dato er som @RequestParam i url 
+    }
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch reservations: ${response.statusText}`);
+    }
+    return response.json();
+}
 
 // Henter reservation med ID (admin) – bruges af openEdit(reservationId)
 export async function getReservationById(reservationId) {
