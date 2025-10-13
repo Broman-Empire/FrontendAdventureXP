@@ -1,6 +1,7 @@
 // Samler alle API-kald = GET, POST, UPDATE, PATCH, DELETE
 
 const BASE_URL = 'http://localhost:8080/api';
+const RESERVATIONS_URL = 'http://localhost:8080/reservations';
 
 // TODO (backend & server-side):
 // - Check @PostMapping endpoint: /api/reservations
@@ -108,13 +109,17 @@ export async function deleteActivity(id) {
     }
 }
 
+// Fetch availability for a specific activity on a single day
+  export async function getAvailabilityForDay(activityId, date) {
+    return getAvailability(activityId, date, date, "00:00:00", "23:59:00");
+}
 
 
 // ---- Reservation wrappers ----
 
 // Create a new reservation
 export async function postReservation(payload){
-    const response = await fetch(`${BASE_URL}/reservations`, {
+    const response = await fetch(RESERVATIONS_URL, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -127,6 +132,18 @@ export async function postReservation(payload){
     return response.json();
 }
 
+// Henter reservation for at vise schedule
+export async function getReservations(date) {
+    let url = `${BASE_URL}/admin/reservations`;
+    if (date) {
+        url += `?date=${date}`; // Hvis dato er som @RequestParam i url 
+    }
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch reservations: ${response.statusText}`);
+    }
+    return response.json();
+}
 
 // Henter reservation med ID (admin) – bruges af openEdit(reservationId)
 export async function getReservationById(reservationId) {

@@ -7,8 +7,13 @@
     background: var(--surface);
     color: var(--color-text);
     cursor:pointer;
-    transition: transform .08s ease, background .2s ease, border-color .2s ease;
+    transition: transform .08s ease, bg .2s ease, border-color .2s ease;
     text-align:center; user-select:none;
+    font-family: var(--font-heading);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 1.15rem;
+    letter-spacing: 1px;
 }
 
 .btn:hover{
@@ -21,25 +26,65 @@
 }
 
 /* Variants */
+/* Confirm / primary button */
 .btn--primary{
     background: var(--primary);
     border-color: transparent;
-    color:#0a0f0c;
+    color: var(--color-text);
 }
 .btn--primary:hover{
-    background: var(--primary-700);
+    background: #0f9d58;
 }
 
+/* Secondary button */
 .btn--ghost{
     background: transparent;
-    border-color: var(--primary);
-    color: var(--primary);
+    border-color: rgba(255,255,255,0.25);
+    color: var(--color-text);
 }
+
 .btn--ghost:hover{
-    background: rgba(0,208,126,.08);
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(255,255,255,0.4);
+}
+
+.btn--reset{
+    background: var(--primary);
+    border-color: transparent;
+    color: var(--color-text);
+}
+
+.btn--reset:hover{
+    background: #fbbc04;
+    color: var(--color-bg);
+}
+
+.btn--confirm {
+    background: #2ecc71;
+    border-color: transparent;
+    color: var(--color-bg);
+}
+
+.btn--confirm:hover {
+    background: #27ae60;
+}
+
+.back-btn{
+    margin-top:1.5rem;
+    padding:.6rem 1.2rem;
+    border-radius: var(--radius-sm);
+    border:1px solid rgba(255,255,255,0.25);
+    background: transparent;
+    color: var(--color-text);
+    font-family: var(--font-heading);
+    letter-spacing:.08em;
+    cursor:pointer;
+}
+
+.back-btn:hover{
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(255,255,255,0.4);
 }
 
 /* Sizes */
-.btn--sm{ padding:.45rem .75rem; font-size: var(--fs-14); }
 .btn--lg{ padding:.8rem 1.25rem; font-size: var(--fs-20); }
-.btn--block{ display:flex; width:100%; }

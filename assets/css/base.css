@@ -2,6 +2,10 @@
     --color-bg: #0B2A52; /* oxford blue */
     --color-text: #F2F4FF; /* ghost white*/
     --color-muted: #9aa0a6;
+    --color-panel: #112f58;
+    --color-panel-border: rgba(242, 244, 255, 0.2);
+    --color-panel-card: rgba(17, 47, 88, 0.65);
+    --color-ring: rgba(242, 244, 255, 0.3);
 
     --primary: #007AFF;     /* iOS royal blue */
     --primary-700: #0056CC; /* deeper blue for hover */
@@ -25,6 +29,15 @@
     --fs-14: 0.875rem;
     --fs-16: 1rem;
     --fs-20: 1.25rem;
+}
+
+body{
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
 }
 
 a{
