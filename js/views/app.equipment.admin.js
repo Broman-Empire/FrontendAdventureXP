@@ -8,19 +8,19 @@ const useMock = false; //False, når backend er klar
 export async function mount(container) {
     container.innerHTML = `
         <section class="equipment-admin">
-            <h1>Udstyrshåndtering</h1>
-            <p>Se udstyr for en aktivitet.</p>
-        
-            <div class="controls">
-            <label for="activitySelector">Vælg aktivitet:</label>
+             <h1>Equipment Management</h1>
+            <p>View equipment for an activity.</p>
+     
+                <div class="controls">
+            <label for="activitySelector">Select activity:</label>
             <select id="activitySelector">
-                <option value="">--Vælg aktivitet --</option>
+                <option value="">-- Select activity --</option>
             </select>
             </div>
             
             <div id="equipmentTableContainer"></div>
             
-            <button data-view="admin" class="back-btn">Tilbage til adminpanel</button>
+            <button data-view="admin" class="back-btn">Go back</button>
             
             </section>
     `;
@@ -64,7 +64,7 @@ async function loadActivities() {
         }
 
         // Rydder dropdown menu for ingen duplikater
-        activitySelector.innerHTML = `<option value="">-- Vælg aktivitet --</option>`;
+        activitySelector.innerHTML = `<option value="">-- Select activity --</option>`;
 
         // Fylder dropdown med Activities
         activities.forEach(activity => {
@@ -76,8 +76,8 @@ async function loadActivities() {
             activitySelector.appendChild(option);
         });
     } catch (error) {
-        console.error("Fejl da aktiviteter skulle hentes", error);
-        activitySelector.innerHTML = `<option value="">Kunne ikke hente aktiviteter</option>`;
+        console.error("Error fetching activities:", error);
+        activitySelector.innerHTML = `<option value="">Could not load activities</option>`;
     }
 }
 
@@ -90,10 +90,10 @@ async function loadEquipment(activityId) {
 
         if (useMock) {
             equipmentList = [
-                { id: 1, name: "Minigolfudstyr", totalSets: 50, usableSets: 48},
-                { id: 2, name: "Sumo Wrestling udstyr", totalSets: 20, usableSets: 20},
-                { id: 3, name: "Paintballudstyr", totalSets: 30, usableSets: 25},
-                { id: 4, name: "Gokart", totalSets: 10, usableSets: 8}
+                { id: 1, name: "Minigolf Equipment", totalSets: 50, usableSets: 48 },
+                { id: 2, name: "Sumo Wrestling Equipment", totalSets: 20, usableSets: 20 },
+                { id: 3, name: "Paintball Equipment", totalSets: 30, usableSets: 25 },
+                { id: 4, name: "Go-kart", totalSets: 10, usableSets: 8 }
             ];
         } else {
             equipmentList = await getEquipmentByActivity(activityId);
@@ -102,8 +102,8 @@ async function loadEquipment(activityId) {
         // Viser aktivitetens udstyr
         renderEquipmentTable(equipmentList);
     } catch (error) {
-        console.error("Fejl opstod, da der skulle hentes udstyr:", error);
-        container.innerHTML = `<p>Kunne ikke hente udstyr :(</p>`;
+        console.error("Error loading equipment:", error);
+        container.innerHTML = `<p>Could not load equipment :(</p>`;
     }
 }
 
@@ -113,13 +113,13 @@ function renderEquipmentTable(equipmentList) {
 
     if (!equipmentList || equipmentList.length === 0) {
         container.innerHTML = `
-      <p>Ingen udstyr fundet for denne aktivitet.</p>
+      <p>No equipment found for this activity.</p>
       <div class="add-equipment-form">
-        <h3>Tilføj nyt udstyr</h3>
-        <input type="text" id="newEquipmentName" placeholder="Udstyrsnavn">
-        <input type="number" id="newEquipmentTotal" placeholder="Antal sæt" min="0" step="1">
-        <input type="number" id="newEquipmentUsable" placeholder="Brugbare sæt" min="0" step="1">
-        <button id="addEquipmentBtn">Opret udstyr</button>
+        <h3>Add new equipment</h3>
+        <input type="text" id="newEquipmentName" placeholder="Equipment name">
+        <input type="number" id="newEquipmentTotal" placeholder="Total sets" min="0" step="1">
+        <input type="number" id="newEquipmentUsable" placeholder="Usable sets" min="0" step="1">
+        <button id="addEquipmentBtn">Create equipment</button>
       </div>
     `;
 
@@ -135,28 +135,28 @@ function renderEquipmentTable(equipmentList) {
 
                 // --- Validering ---
                 if (!activityId) {
-                    alert("Vælg venligst en aktivitet først.");
+                    alert("Please select an activity first.");
                     return;
                 }
 
                 if (!name || isNaN(totalSets) || isNaN(usableSets)) {
-                    alert("Alle felter skal udfyldes korrekt.");
+                    alert("All fields must be filled in correctly.");
                     return;
                 }
 
                 if (usableSets > totalSets) {
-                    alert(`Brugbare sæt (${usableSets}) kan ikke være større end totale sæt (${totalSets}).`);
-                    document.getElementById("newEquipmentUsable").value = totalSets; // sæt feltet tilbage
+                    alert(`Usable sets (${usableSets}) cannot be greater than total sets (${totalSets}).`);
+                    document.getElementById("newEquipmentUsable").value = totalSets;
                     return;
                 }
 
                 try {
                     await createEquipmentForActivity(activityId, { name, totalSets, usableSets });
-                    alert("Udstyr oprettet!");
-                    await loadEquipment(activityId); // opdater tabel
+                    alert("Equipment created!");
+                    await loadEquipment(activityId);
                 } catch (err) {
-                    console.error("Fejl ved oprettelse af udstyr:", err);
-                    alert("Kunne ikke oprette udstyr.");
+                    console.error("Error creating equipment:", err);
+                    alert("Could not create equipment.");
                 }
             });
         }
@@ -171,10 +171,10 @@ function renderEquipmentTable(equipmentList) {
       <thead>
         <tr>
           <th>ID</th>
-          <th>Navn</th>
-          <th>Antal sæt</th>
-          <th>Antal brugbare sæt</th>
-          <th>Handling</th>
+          <th>Name</th>
+          <th>Total sets</th>
+          <th>Usable sets</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -211,8 +211,8 @@ function renderEquipmentTable(equipmentList) {
                   >
                 </td>
                 <td>
-                  <button class="save-btn" data-id="${equipment.id}">Gem</button>
-                  <button class="delete-btn" data-id="${equipment.id}">Slet</button>
+                  <button class="save-btn" data-id="${equipment.id}">Save</button>
+                  <button class="delete-btn" data-id="${equipment.id}">Delete</button>
                 </td>
               </tr>
             `
@@ -271,7 +271,7 @@ function addEquipmentEventListeners(container) {
                 usableSetsValue > totalSetsValue
             ) {
                 alert(
-                    `Antal brugbare sæt (${usableSetsValue}) kan ikke være større end det samlede antal sæt (${totalSetsValue}).`
+                    `Usable sets (${usableSetsValue}) cannot be greater than total sets (${totalSetsValue}).`
                 );
 
                 // Sæt feltet tilbage til max tilladt værdi
@@ -284,10 +284,10 @@ function addEquipmentEventListeners(container) {
 
             try {
                 await updateEquipment(equipmentId, patch);
-                alert("Udstyr opdateret!");
+                alert("Equipment updated!");
             } catch (error) {
-                console.error("Fejl ved opdatering af udstyr:", error);
-                alert("Udstyret kunne ikke opdateres!");
+                console.error("Error updating equipment:", error);
+                alert("Could not update equipment!");
             }
         });
     });
@@ -299,16 +299,16 @@ function addEquipmentEventListeners(container) {
             const equipmentId = event.target.dataset.id;
 
             const confirmation = confirm(
-                "Er du sikker på, at du vil slette dette sæt udstyr?"
+                "Are you sure you want to delete this equipment?"
             );
             if (confirmation) {
                 try {
                     await deleteEquipment(equipmentId);
                     deleteBtn.closest("tr").remove();
-                    alert("Udstyret blev slettet!");
+                    alert("Equipment deleted!");
                 } catch (error) {
-                    console.error("Fejl ved sletning af udstyr:", error);
-                    alert("Udstyret kunne ikke slettes!");
+                    console.error("Error deleting equipment:", error);
+                    alert("Could not delete equipment!");
                 }
             }
         });
