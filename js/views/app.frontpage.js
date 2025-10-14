@@ -56,7 +56,8 @@ export async function mount(container) {
     const navLinks = container.querySelectorAll(".frontpage-header-link[data-nav]");
     const navMap = {
         home: "frontpage",
-        admin: "admin"
+        admin: "admin",
+        login: "admin" // TODO: temporary switch as no login is handled yet
     };
     navLinks.forEach(link => {
         link.addEventListener("click", () => {
