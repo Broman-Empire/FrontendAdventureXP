@@ -2,6 +2,10 @@
 
 const BASE_URL = 'http://localhost:8080/api';
 const RESERVATIONS_URL = 'http://localhost:8080/reservations';
+const ADMIN_BASE_URL = `${BASE_URL}/admin`;
+const ADMIN_RESERVATIONS_URL = `${ADMIN_BASE_URL}/reservations`;
+const ADMIN_SEARCH_URL = `${ADMIN_BASE_URL}/search`;
+const ADMIN_SCHEDULE_URL = `${ADMIN_BASE_URL}/schedule`;
 
 // TODO (backend & server-side):
 // - Check @PostMapping endpoint: /api/reservations
@@ -133,28 +137,8 @@ export async function postReservation(payload){
 }
 
 // Henter reservation for at vise schedule
-export async function getReservations(date) {
-    let url = `${BASE_URL}/admin/reservations`;
-    if (date) {
-        url += `?date=${date}`; // Hvis dato er som @RequestParam i url 
-    }
-    const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error(`Failed to fetch reservations: ${response.statusText}`);
-    }
-    return response.json();
-}
-
-// Henter reservation med ID (admin) – bruges af openEdit(reservationId)
-export async function getReservationById(reservationId) {
-    const res = await fetch(`${BASE_URL}/admin/reservations/${reservationId}`);
-    if (!res.ok) throw new Error(`Failed to fetch reservation ${reservationId}: ${res.statusText}`);
-    return res.json();
-}
-
-// Opdater en eksisterende reservation (delvist)
 export async function patchReservation(reservationId, patch) {
-    const response = await fetch(`${BASE_URL}/admin/reservations/${reservationId}`, {
+    const response = await fetch(`${ADMIN_RESERVATIONS_URL}/${reservationId}`, {
         method: 'PATCH',
         headers: {
             'Content-Type': 'application/json'
@@ -167,53 +151,78 @@ export async function patchReservation(reservationId, patch) {
     return response.json();
 }
 
-// Slet reservation (admin)
-export async function deleteReservation(reservationId) {
-    const res = await fetch(`${BASE_URL}/admin/reservations/${reservationId}`, {
-        method: 'DELETE'
+export async function listAdminReservations({ date } = {}) {
+    const params = new URLSearchParams();
+    if (date) params.set("date", date);
+    const url = params.size ? `${ADMIN_RESERVATIONS_URL}?${params.toString()}` : ADMIN_RESERVATIONS_URL;
+
+    const response = await fetch(url, {
+        headers: { Accept: "application/json" }
     });
-    if (!res.ok) {
-        const t = await res.text().catch(() => '');
-        throw new Error(`Failed to delete reservation ${reservationId}. ${res.status} ${res.statusText}. ${t}`);
+
+    if (!response.ok) {
+        const body = await response.text().catch(() => "");
+        throw new Error(`Failed to fetch reservations. ${response.status} ${response.statusText}. ${body}`);
     }
+
+    return response.json();
+}
+
+export async function getAdminReservation(reservationId) {
+    const response = await fetch(`${ADMIN_RESERVATIONS_URL}/${reservationId}`, {
+        headers: { Accept: "application/json" }
+    });
+
+    if (!response.ok) {
+        const body = await response.text().catch(() => "");
+        throw new Error(`Failed to load reservation ${reservationId}. ${response.status} ${response.statusText}. ${body}`);
+    }
+
+    return response.json();
+}
+
+export async function deleteReservation(reservationId) {
+    const response = await fetch(`${ADMIN_RESERVATIONS_URL}/${reservationId}`, {
+        method: "DELETE"
+    });
+
+    if (!response.ok) {
+        const body = await response.text().catch(() => "");
+        throw new Error(`Failed to delete reservation ${reservationId}. ${response.status} ${response.statusText}. ${body}`);
+    }
+
     return true;
 }
 
-// Hent reservation ud fra dato (admin)
-export async function getReservationByDate(date) {
-    if (!date) throw new Error('getSchedule(date) kræver YYYY-MM-DD');
-    const params = new URLSearchParams({ date });
-    const res = await fetch(`${BASE_URL}/admin/reservations?${params.toString()}`, {
-        method: 'GET',
-        headers: { 'Accept': 'application/json' }
-    });
-    if (!res.ok) {
-        const t = await res.text().catch(() => '');
-        throw new Error(`Failed to load schedule for ${date}. ${res.status} ${res.statusText}. ${t}`);
-    }
-    return res.json();
-}
-
-// Henter dagsplan (admin)
 export async function getDailySchedule(date) {
-    if (!date) throw new Error("getSchedule(date) kræver YYYY-MM-DD");
-    const params = new URLSearchParams({ date });
-    const res = await fetch(`${BASE_URL}/admin/schedule?${params.toString()}`, {
-        method: "GET",
-        headers: { "Accept": "application/json" }
+    const params = new URLSearchParams();
+    if (date) params.set("date", date);
+
+    const response = await fetch(`${ADMIN_SCHEDULE_URL}?${params.toString()}`, {
+        headers: { Accept: "application/json" }
     });
-    if (!res.ok) throw new Error(`Kunne ikke hente skema for ${date}`);
-    return res.json();
+
+    if (!response.ok) {
+        const body = await response.text().catch(() => "");
+        throw new Error(`Failed to load schedule for ${date || "(missing date)"}. ${response.status} ${response.statusText}. ${body}`);
+    }
+
+    return response.json();
 }
 
-
-// Find reservation via telefonnummer (admin)
 export async function searchReservationByPhone(phone) {
-    const param = new URLSearchParams({ phone });
-    const response = await fetch(`${BASE_URL}/admin/search?${param}`);
+    const params = new URLSearchParams();
+    if (phone) params.set("phone", phone);
+
+    const response = await fetch(`${ADMIN_SEARCH_URL}?${params.toString()}`, {
+        headers: { Accept: "application/json" }
+    });
+
     if (!response.ok) {
-        throw new Error(`Failed to fetch reservation by phone: ${response.statusText}`);
+        const body = await response.text().catch(() => "");
+        throw new Error(`Failed to search reservations. ${response.status} ${response.statusText}. ${body}`);
     }
+
     return response.json();
 }
 
