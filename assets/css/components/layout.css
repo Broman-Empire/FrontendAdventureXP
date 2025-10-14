@@ -28,13 +28,16 @@
     color: inherit;
     text-decoration: none;
     transition: opacity 0.2s ease;
+    cursor: pointer;
+    user-select: none;
 }
 .frontpage-header-link:focus,
 .frontpage-header-link:hover {
     opacity: 1;
+    cursor: pointer;
 }
 .frontpage-header-link.active {
-    color: var(--primary);
+    color: inherit;
     opacity: 1;
 }
 
@@ -168,13 +171,13 @@
 
 .view-shell__header{
     width: 100%;
-    max-width: 960px;
+    max-width: var(--shell-max-width);
+    margin: 0 auto 1.5rem auto;
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
     gap: 1rem;
-    margin-bottom: 1.5rem;
 }
 
 .view-shell__title-group{
@@ -186,16 +189,20 @@
     display: flex;
     align-items: center;
     gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
 }
 
 .view-shell__nav{
     display: flex;
     gap: 0.75rem;
+    flex-wrap: wrap;
 }
 
 .view-shell__layout{
     width: 100%;
-    max-width: 960px;
+    max-width: var(--shell-max-width);
+    margin: 0 auto;
 }
 
 @media (max-width: 720px){

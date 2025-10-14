@@ -88,3 +88,4 @@
 
 /* Sizes */
 .btn--lg{ padding:.8rem 1.25rem; font-size: var(--fs-20); }
+.btn--sm{ padding:0.45rem 0.75rem; font-size:0.9rem; }

@@ -7,39 +7,65 @@ import { navigation } from "../main.js";
 // Formular: opret aktivitet
 export async function mount(container) {
     container.innerHTML = `
-    <section class="admin-activities">
-      <h1>Activity Management</h1>
-      <p>Create, edit, or delete activities.</p>
+    <section class="admin view-shell">
+      <header class="view-shell__header">
+        <div class="view-shell__title-group">
+          <h1 class="view-shell__title">Activities</h1>
+          <p class="view-shell__subtitle">Create, edit, or delete activities.</p>
+        </div>
+        <div class="view-shell__actions">
+          <button type="button" class="booking-close" data-action="close">×</button>
+          <nav class="view-shell__nav" data-role="admin-nav">
+            <button class="btn btn--ghost" data-target="admin">Dashboard</button>
+            <button class="btn btn--ghost" data-target="equipment">Equipment</button>
+          </nav>
+        </div>
+      </header>
 
-      <!-- Formular til at oprette ny aktivitet -->
-      <div class="form-section">
-          <h3>Create new activity</h3>
-        <input id="name" placeholder="Name">
-        <input id="minAge" type="number" placeholder="Min. age">
-        <input id="minParticipants" type="number" placeholder="Min. participants">
-        <input id="maxParticipants" type="number" placeholder="Max. participants">
-        <input id="durationMinutes" type="number" placeholder="Duration (minutes)">
-        <input id="parallelCourts" type="number" placeholder="Parallel courts">
-       
-       
-          <h4><Required>Equipment</Required></h4>
-            <input id="equipmentName" placeholder="Equipment name">
-            <input id="equipmentTotal" type="number" placeholder="Total sets">
-            <input id="equipmentUsable" type="number" placeholder="Usable sets">
-    
-            <button id="createBtn">Create activity</button>
-      </div>
+      <section class="view-shell__layout">
+        <section class="panel">
+          <header class="panel__header">
+            <h2 class="panel__title">Create new activity</h2>
+            <p class="panel__subtitle">Fill out all activity fields and optional equipment.</p>
+          </header>
 
-      <!-- Container til aktivitets-tabel -->
-      <div id="activitiesTableContainer"></div>
+          <form class="form-grid" data-role="create">
+            <label class="form-field"><span class="form-label">Name</span><input id="name" placeholder="Name" required></label>
+            <label class="form-field"><span class="form-label">Min age</span><input id="minAge" type="number" min="0" placeholder="Min. age" required></label>
+            <label class="form-field"><span class="form-label">Min participants</span><input id="minParticipants" type="number" min="0" placeholder="Min. participants" required></label>
+            <label class="form-field"><span class="form-label">Max participants</span><input id="maxParticipants" type="number" min="0" placeholder="Max. participants" required></label>
+            <label class="form-field"><span class="form-label">Duration (minutes)</span><input id="durationMinutes" type="number" min="0" placeholder="Duration" required></label>
+            <label class="form-field"><span class="form-label">Parallel courts</span><input id="parallelCourts" type="number" min="0" placeholder="Parallel courts" required></label>
+          </form>
 
-      <!-- Tilbageknap til admin.js -->
-      <button data-view="admin" class="back-btn">Go back</button>
+          <header class="panel__header">
+            <h3 class="panel__title">Optional equipment</h3>
+            <p class="panel__subtitle">Leave blank if no equipment is needed.</p>
+          </header>
+          <form class="form-grid" data-role="equipment">
+            <label class="form-field"><span class="form-label">Equipment name</span><input id="equipmentName" placeholder="Equipment name"></label>
+            <label class="form-field"><span class="form-label">Total sets</span><input id="equipmentTotal" type="number" min="0" placeholder="Total sets"></label>
+            <label class="form-field"><span class="form-label">Usable sets</span><input id="equipmentUsable" type="number" min="0" placeholder="Usable sets"></label>
+          </form>
+
+          <div class="form-actions">
+            <button id="createBtn" class="btn btn--primary">Create activity</button>
+          </div>
+
+          <div class="panel__body" id="activitiesTableContainer">
+            <p class="panel__empty">Loading activities…</p>
+          </div>
+        </section>
+      </section>
     </section>
   `;
 
-    // Navigér tilbage
-    container.querySelector(".back-btn").addEventListener("click", () => navigation("admin"));
+    container.querySelector("[data-action='close']").addEventListener("click", () => navigation("admin"));
+    container.querySelector("[data-role='admin-nav']").addEventListener("click", (event) => {
+        const btn = event.target.closest("button[data-target]");
+        if (!btn) return;
+        navigation(btn.dataset.target);
+    });
 
     // Opret aktivitet
     container.querySelector("#createBtn").addEventListener("click", async () => {
@@ -57,7 +83,7 @@ export async function mount(container) {
         const totalSets = parseInt(document.getElementById("equipmentTotal").value);
         const usableSets = parseInt(document.getElementById("equipmentUsable").value);
 
-        // Validering af udstyrsinput
+        // Validering af udstyrinput
         if (!newActivity.name) {
             alert("Please enter an activity name.");
             return;
@@ -137,13 +163,13 @@ async function loadActivities() {
         const activities = await getAdminActivities();
 
         if (!activities || activities.length === 0) {
-            container.innerHTML = "<p>No activities found.</p>";
+            container.innerHTML = `<p class="panel__empty">No activities found.</p>`;
             return;
         }
 
         // Byg tabel med inline edit
         const tableHTML = `
-      <table class="activities-table">
+      <table class="table panel__table">
         <thead>
           <tr>
              <th>ID</th>
@@ -153,22 +179,22 @@ async function loadActivities() {
             <th>Max. participants</th>
             <th>Duration (min)</th>
             <th>Parallel courts</th>
-            <th>Actions</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
           ${activities.map(a => `
             <tr>
               <td>${a.id}</td>
-              <td><input type="text" value="${a.name}" data-id="${a.id}" data-field="name"></td>
-              <td><input type="number" value="${a.minAge}" data-id="${a.id}" data-field="minAge"></td>
-              <td><input type="number" value="${a.minParticipants}" data-id="${a.id}" data-field="minParticipants"></td>
-              <td><input type="number" value="${a.maxParticipants}" data-id="${a.id}" data-field="maxParticipants"></td>
-              <td><input type="number" value="${a.durationMinutes}" data-id="${a.id}" data-field="durationMinutes"></td>
-              <td><input type="number" value="${a.parallelCourts}" data-id="${a.id}" data-field="parallelCourts"></td>
-              <td>
-                <button class="save-btn" data-id="${a.id}">Save</button>
-                <button class="delete-btn" data-id="${a.id}">Delete</button>
+              <td><input class="table-input" type="text" value="${a.name}" data-id="${a.id}" data-field="name"></td>
+              <td><input class="table-input" type="number" value="${a.minAge}" data-id="${a.id}" data-field="minAge"></td>
+              <td><input class="table-input" type="number" value="${a.minParticipants}" data-id="${a.id}" data-field="minParticipants"></td>
+              <td><input class="table-input" type="number" value="${a.maxParticipants}" data-id="${a.id}" data-field="maxParticipants"></td>
+              <td><input class="table-input" type="number" value="${a.durationMinutes}" data-id="${a.id}" data-field="durationMinutes"></td>
+              <td><input class="table-input" type="number" value="${a.parallelCourts}" data-id="${a.id}" data-field="parallelCourts"></td>
+              <td class="panel__actions panel__actions--gap">
+                <button class="btn btn--primary btn--sm" data-action="save" data-id="${a.id}">Save</button>
+                <button class="btn btn--ghost btn--sm" data-action="delete" data-id="${a.id}">Delete</button>
               </td>
             </tr>
           `).join("")}
@@ -180,7 +206,7 @@ async function loadActivities() {
         addActivityEventListeners();
     } catch (error) {
         console.error("Error loading activities:", error);
-        container.innerHTML = `<p>Could not load activities.</p>`;
+        container.innerHTML = `<p class="panel__empty">Could not load activities.</p>`;
     }
 }
 
@@ -188,8 +214,7 @@ async function loadActivities() {
 function addActivityEventListeners() {
     const container = document.getElementById("activitiesTableContainer");
 
-    // GEM
-    container.querySelectorAll(".save-btn").forEach(btn => {
+    container.querySelectorAll("[data-action='save']").forEach(btn => {
         btn.addEventListener("click", async e => {
             const id = e.target.dataset.id;
             const inputs = container.querySelectorAll(`input[data-id="${id}"]`);
@@ -198,11 +223,7 @@ function addActivityEventListeners() {
             inputs.forEach(input => {
                 const field = input.dataset.field;
                 let value = input.value;
-
-                if (input.type === "number") {
-                    value = parseInt(value);
-                }
-
+                if (input.type === "number") value = parseInt(value);
                 patch[field] = value;
             });
 
@@ -216,11 +237,10 @@ function addActivityEventListeners() {
         });
     });
 
-    // SLET
-    container.querySelectorAll(".delete-btn").forEach(btn => {
+    container.querySelectorAll("[data-action='delete']").forEach(btn => {
         btn.addEventListener("click", async e => {
             const id = e.target.dataset.id;
-            if (confirm("Are you sure you want to delete this activity?")) {
+            if (!confirm("Are you sure you want to delete this activity?")) return;
                 try {
                     await deleteActivity(id);
                     alert("Activity deleted!");
@@ -229,7 +249,6 @@ function addActivityEventListeners() {
                     console.error("Error deleting activity:", err);
                     alert("Could not delete activity.");
                 }
-            }
         });
     });
 }
