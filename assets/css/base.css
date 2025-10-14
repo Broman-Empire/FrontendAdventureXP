@@ -23,6 +23,7 @@
     --shadow: 0 6px 18px rgba(0,0,0,.25);
     --gap: 16px;
     --gap-lg: 24px;
+    --shell-max-width: 1100px;
 
     --font-heading: 'Bebas Neue', sans-serif;
     --font-body: 'Inter', system-ui, sans-serif;
