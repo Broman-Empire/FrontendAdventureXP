@@ -7,29 +7,52 @@ const useMock = false; //False, når backend er klar
 
 export async function mount(container) {
     container.innerHTML = `
-        <section class="equipment-admin">
-             <h1>Equipment Management</h1>
-            <p>View equipment for an activity.</p>
-     
-                <div class="controls">
-            <label for="activitySelector">Select activity:</label>
-            <select id="activitySelector">
-                <option value="">-- Select activity --</option>
-            </select>
-            </div>
-            
-            <div id="equipmentTableContainer"></div>
-            
-            <button data-view="admin" class="back-btn">Go back</button>
-            
-            </section>
+    <section class="admin view-shell">
+      <header class="view-shell__header">
+        <div class="view-shell__title-group">
+          <h1 class="view-shell__title">Equipment</h1>
+          <p class="view-shell__subtitle">Select an activity to view and manage its equipment.</p>
+        </div>
+        <div class="view-shell__actions">
+          <button type="button" class="booking-close" data-action="close">×</button>
+          <nav class="view-shell__nav" data-role="admin-nav">
+            <button class="btn btn--ghost" data-target="admin">Dashboard</button>
+            <button class="btn btn--ghost" data-target="activities">Activities</button>
+          </nav>
+        </div>
+      </header>
+
+      <section class="view-shell__layout">
+        <section class="panel">
+          <header class="panel__header">
+            <h2 class="panel__title">Choose activity</h2>
+            <p class="panel__subtitle">Load equipment for a specific activity.</p>
+          </header>
+
+          <div class="form-grid">
+            <label class="form-field">
+              <span class="form-label">Activity</span>
+              <select id="activitySelector">
+                <option value="">Select activity…</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="panel__body" id="equipmentTableContainer">
+            <p class="panel__empty">Pick an activity to view its equipment.</p>
+          </div>
+        </section>
+      </section>
+    </section>
     `;
 
-    // Event listener for tilbageknap til adminpanel
-    container.querySelector(".back-btn").addEventListener("click", () => navigation("admin"))
+    container.querySelector("[data-action='close']").addEventListener("click", () => navigation("admin"));
+    container.querySelector("[data-role='admin-nav']").addEventListener("click", (event) => {
+        const btn = event.target.closest("button[data-target]");
+        if (!btn) return;
+        navigation(btn.dataset.target);
+    });
 
-
-    // Fylder dropdown menu med Activities
     await loadActivities();
 
     // Admin vælger en aktivitet, sker der et "skift"
@@ -39,7 +62,7 @@ export async function mount(container) {
         if (activityId) {
             await loadEquipment(activityId);
         } else {
-            document.getElementById("equipmentTableContainer").innerHTML = "";
+            document.getElementById("equipmentTableContainer").innerHTML = `<p class="panel__empty">Pick an activity to view its equipment.</p>`;
         }
     });
 }
@@ -63,10 +86,7 @@ async function loadActivities() {
             activities = await getActivities(); // Henter ActivityDTO fra backend
         }
 
-        // Rydder dropdown menu for ingen duplikater
-        activitySelector.innerHTML = `<option value="">-- Select activity --</option>`;
-
-        // Fylder dropdown med Activities
+        activitySelector.innerHTML = `<option value="">Select activity…</option>`;
         activities.forEach(activity => {
             const option = document.createElement("option");
 
@@ -99,28 +119,33 @@ async function loadEquipment(activityId) {
             equipmentList = await getEquipmentByActivity(activityId);
         }
 
-        // Viser aktivitetens udstyr
-        renderEquipmentTable(equipmentList);
+        renderEquipmentTable(equipmentList, activityId);
     } catch (error) {
         console.error("Error loading equipment:", error);
         container.innerHTML = `<p>Could not load equipment :(</p>`;
     }
 }
 
-// Hjælpemetode til at vise Equipment i en tabel
-function renderEquipmentTable(equipmentList) {
+function renderEquipmentTable(equipmentList, activityId) {
     const container = document.getElementById("equipmentTableContainer");
 
     if (!equipmentList || equipmentList.length === 0) {
         container.innerHTML = `
-      <p>No equipment found for this activity.</p>
-      <div class="add-equipment-form">
-        <h3>Add new equipment</h3>
-        <input type="text" id="newEquipmentName" placeholder="Equipment name">
-        <input type="number" id="newEquipmentTotal" placeholder="Total sets" min="0" step="1">
-        <input type="number" id="newEquipmentUsable" placeholder="Usable sets" min="0" step="1">
-        <button id="addEquipmentBtn">Create equipment</button>
-      </div>
+      <p class="panel__empty">No equipment found for this activity.</p>
+      <section class="panel">
+        <header class="panel__header">
+          <h3 class="panel__title">Add new equipment</h3>
+          <p class="panel__subtitle">Provide equipment details below.</p>
+        </header>
+        <form class="form-grid" data-role="new-equipment">
+          <label class="form-field"><span class="form-label">Name</span><input type="text" id="newEquipmentName" placeholder="Equipment name"></label>
+          <label class="form-field"><span class="form-label">Total sets</span><input type="number" id="newEquipmentTotal" min="0" placeholder="Total sets"></label>
+          <label class="form-field"><span class="form-label">Usable sets</span><input type="number" id="newEquipmentUsable" min="0" placeholder="Usable sets"></label>
+        </form>
+        <div class="form-actions">
+          <button id="addEquipmentBtn" class="btn btn--primary">Create equipment</button>
+        </div>
+      </section>
     `;
 
         const addBtn = document.getElementById("addEquipmentBtn");
@@ -131,7 +156,6 @@ function renderEquipmentTable(equipmentList) {
                 const name = document.getElementById("newEquipmentName").value.trim();
                 const totalSets = parseInt(document.getElementById("newEquipmentTotal").value);
                 const usableSets = parseInt(document.getElementById("newEquipmentUsable").value);
-                const activityId = document.getElementById("activitySelector").value;
 
                 // --- Validering ---
                 if (!activityId) {
@@ -167,74 +191,44 @@ function renderEquipmentTable(equipmentList) {
 
     // Bygger HTML-tabellen som en String
     const tableHTML = `
-    <table class="equipment-table">
+    <table class="table panel__table">
       <thead>
         <tr>
           <th>ID</th>
           <th>Name</th>
           <th>Total sets</th>
           <th>Usable sets</th>
-          <th>Actions</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
         ${equipmentList
-        .map(
-            (equipment) => `
+            .map(
+                (equipment) => `
               <tr>
                 <td>${equipment.id}</td>
-                <td>
-                  <input 
-                    type="text" 
-                    value="${equipment.name}" 
-                    data-equipmentid="${equipment.id}" 
-                    data-field="name"
-                  >
-                </td>
-                <td>
-                  <input 
-                    type="number" 
-                    value="${equipment.totalSets}" 
-                    min="0"
-                    data-equipmentid="${equipment.id}" 
-                    data-field="totalSets"
-                  >
-                </td>
-                <td>
-                  <input 
-                    type="number" 
-                    value="${equipment.usableSets}" 
-                    min="0" 
-                    max="${equipment.totalSets}" 
-                    data-equipmentid="${equipment.id}" 
-                    data-field="usableSets"
-                  >
-                </td>
-                <td>
-                  <button class="save-btn" data-id="${equipment.id}">Save</button>
-                  <button class="delete-btn" data-id="${equipment.id}">Delete</button>
+                <td><input class="table-input" type="text" value="${equipment.name}" data-equipmentid="${equipment.id}" data-field="name"></td>
+                <td><input class="table-input" type="number" min="0" value="${equipment.totalSets}" data-equipmentid="${equipment.id}" data-field="totalSets"></td>
+                <td><input class="table-input" type="number" min="0" max="${equipment.totalSets}" value="${equipment.usableSets}" data-equipmentid="${equipment.id}" data-field="usableSets"></td>
+                <td class="panel__actions panel__actions--gap">
+                  <button class="btn btn--primary btn--sm" data-action="save" data-id="${equipment.id}">Save</button>
+                  <button class="btn btn--ghost btn--sm" data-action="delete" data-id="${equipment.id}">Delete</button>
                 </td>
               </tr>
             `
-        )
-        .join("")}
+            )
+            .join("")}
       </tbody>
     </table>
   `;
 
     // Indsæt tabellen i containeren
     container.innerHTML = tableHTML;
-
-
-    // SAVE + DELETE event listeners
-    addEquipmentEventListeners(container);
+    addEquipmentEventListeners(container, activityId);
 }
 
-// ---- Event Listeners ----
-function addEquipmentEventListeners(container) {
-    // SAVE
-    const saveButtons = container.querySelectorAll(".save-btn");
-    saveButtons.forEach((saveBtn) => {
+function addEquipmentEventListeners(container, activityId) {
+    container.querySelectorAll("[data-action='save']").forEach((saveBtn) => {
         saveBtn.addEventListener("click", async (event) => {
             const equipmentId = event.target.dataset.id;
 
@@ -292,16 +286,11 @@ function addEquipmentEventListeners(container) {
         });
     });
 
-    // DELETE
-    const deleteButtons = container.querySelectorAll(".delete-btn");
-    deleteButtons.forEach((deleteBtn) => {
+    container.querySelectorAll("[data-action='delete']").forEach((deleteBtn) => {
         deleteBtn.addEventListener("click", async (event) => {
             const equipmentId = event.target.dataset.id;
 
-            const confirmation = confirm(
-                "Are you sure you want to delete this equipment?"
-            );
-            if (confirmation) {
+            if (!confirm("Are you sure you want to delete this equipment?")) return;
                 try {
                     await deleteEquipment(equipmentId);
                     deleteBtn.closest("tr").remove();
@@ -310,7 +299,6 @@ function addEquipmentEventListeners(container) {
                     console.error("Error deleting equipment:", error);
                     alert("Could not delete equipment!");
                 }
-            }
         });
     });
 }
