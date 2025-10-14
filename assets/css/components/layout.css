@@ -154,3 +154,52 @@
 .stack > * + *{
     margin-top: var(--gap);
 }
+
+.view-shell{
+    position: relative;
+    min-height: 100vh;
+    background: var(--color-bg);
+    color: var(--color-text);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 3rem 1.5rem 4rem 1.5rem;
+}
+
+.view-shell__header{
+    width: 100%;
+    max-width: 960px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.view-shell__title-group{
+    text-align: center;
+    flex: 1 1 300px;
+}
+
+.view-shell__actions{
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.view-shell__nav{
+    display: flex;
+    gap: 0.75rem;
+}
+
+.view-shell__layout{
+    width: 100%;
+    max-width: 960px;
+}
+
+@media (max-width: 720px){
+    .view-shell{ padding: 2.5rem 1.2rem 3rem; }
+    .view-shell__header{ flex-direction: column; align-items: center; gap: 1rem; }
+    .view-shell__actions{ flex-direction: column; }
+}

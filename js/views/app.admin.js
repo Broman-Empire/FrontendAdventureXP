@@ -4,13 +4,11 @@ import { navigation } from "../main.js";
 import {
     listAdminReservations,
     searchReservationByPhone,
-    getDailySchedule,
     deleteReservation
 } from "../api.js";
 
 const state = {
     reservations: [],
-    schedule: [],
     filters: { phone: "", date: "" }
 };
 
@@ -20,85 +18,75 @@ export function mount(container) {
     container.innerHTML = getMarkup();
 
     refs = {
+        closeBtn: container.querySelector("[data-action='close']"),
         nav: container.querySelector("[data-role='admin-nav']"),
         form: container.querySelector("[data-role='filters']"),
         phone: container.querySelector("[data-input='phone']"),
         date: container.querySelector("[data-input='date']"),
         clearBtn: container.querySelector("[data-action='clear']"),
         status: container.querySelector("[data-role='status']"),
-        list: container.querySelector("[data-role='reservations']"),
-        scheduleDate: container.querySelector("[data-input='schedule-date']"),
-        schedule: container.querySelector("[data-role='schedule']")
+        list: container.querySelector("[data-role='reservations']")
     };
 
+    bindClose();
     bindNavigation();
     bindFilters();
-    bindSchedule();
 
     loadReservations();
-    loadSchedule();
 }
 
 function getMarkup() {
     return `
-    <section class="admin-dashboard container">
-      <header class="admin-dashboard__header">
-        <div>
-          <h1 class="admin-dashboard__title">Admin Dashboard</h1>
-          <p class="admin-dashboard__subtitle">Manage reservations and view the daily schedule.</p>
+    <section class="admin view-shell">
+      <header class="view-shell__header">
+        <div class="view-shell__title-group">
+          <h1 class="view-shell__title">Admin Dashboard</h1>
+          <p class="view-shell__subtitle">Manage reservations and filter by day or phone number.</p>
         </div>
-        <nav class="admin-dashboard__nav" data-role="admin-nav">
-          <button class="btn btn--ghost" data-target="frontpage">Forside</button>
-          <button class="btn btn--ghost" data-target="activities">Aktiviteter</button>
-          <button class="btn btn--ghost" data-target="equipment">Udstyr</button>
-        </nav>
+        <div class="view-shell__actions">
+          <button type="button" class="booking-close" data-action="close">×</button>
+          <nav class="view-shell__nav" data-role="admin-nav">
+            <button class="btn btn--ghost" data-target="activities">Activities</button>
+            <button class="btn btn--ghost" data-target="equipment">Equipment</button>
+          </nav>
+        </div>
       </header>
 
-      <div class="admin-dashboard__layout">
-        <section class="admin-card">
-          <header class="admin-card__header">
-            <h2 class="admin-card__title">Reservations</h2>
-            <p class="admin-card__subtitle">Search by phone number or date.</p>
+      <section class="view-shell__layout">
+        <section class="panel">
+          <header class="panel__header">
+            <h2 class="panel__title">Reservations</h2>
+            <p class="panel__subtitle">Search by phone number or date.</p>
           </header>
 
-          <form class="admin-filters" data-role="filters">
-            <div class="admin-field">
-              <label for="admin-phone">Phone number</label>
-              <input id="admin-phone" data-input="phone" type="text" placeholder="e.g. 12345678" autocomplete="tel"/>
-            </div>
-            <div class="admin-field">
-              <label for="admin-date">Date</label>
-              <input id="admin-date" data-input="date" type="date" />
-            </div>
-            <div class="admin-filters__actions">
+          <form class="form-grid" data-role="filters">
+            <label class="form-field">
+              <span class="form-label">Phone number</span>
+              <input data-input="phone" type="text" placeholder="e.g. 12345678" autocomplete="tel" />
+            </label>
+            <label class="form-field">
+              <span class="form-label">Date</span>
+              <input data-input="date" type="date" />
+            </label>
+            <div class="form-actions">
               <button type="submit" class="btn btn--primary">Load</button>
               <button type="button" class="btn btn--ghost" data-action="clear">Reset</button>
             </div>
           </form>
 
-          <p class="admin-status" data-role="status"></p>
-          <div class="admin-results" data-role="reservations">
-            <p class="admin-empty">Loading…</p>
+          <p class="panel__status" data-role="status"></p>
+          <div class="panel__body" data-role="reservations">
+            <p class="panel__empty">Loading…</p>
           </div>
         </section>
-
-        <section class="admin-card">
-          <header class="admin-card__header">
-            <h2 class="admin-card__title">Daily schedule</h2>
-            <p class="admin-card__subtitle">See bookings for a specific date.</p>
-          </header>
-
-          <div class="admin-field admin-field--inline">
-            <label for="admin-schedule-date">Date</label>
-            <input id="admin-schedule-date" data-input="schedule-date" type="date" />
-          </div>
-          <div class="admin-schedule" data-role="schedule">
-            <p class="admin-empty">Loading…</p>
-          </div>
-        </section>
-      </div>
+      </section>
     </section>
     `;
+}
+
+// Bindings
+function bindClose() {
+    refs.closeBtn?.addEventListener("click", () => navigation("frontpage"));
 }
 
 function bindNavigation() {
@@ -128,12 +116,7 @@ function bindFilters() {
     });
 }
 
-function bindSchedule() {
-    if (!refs.scheduleDate) return;
-    refs.scheduleDate.value = todayISO();
-    refs.scheduleDate.addEventListener("change", () => loadSchedule(refs.scheduleDate.value));
-}
-
+// Load and render reservations
 async function loadReservations() {
     renderLoading(refs.list, "Loading reservations…");
     try {
@@ -154,32 +137,19 @@ async function loadReservations() {
     }
 }
 
-async function loadSchedule(date = todayISO()) {
-    if (!refs.schedule) return;
-    renderLoading(refs.schedule, "Loading schedule…");
-
-    try {
-        const data = await getDailySchedule(date);
-        state.schedule = Array.isArray(data) ? data : [];
-        renderSchedule();
-    } catch (error) {
-        console.error(error);
-        renderError(refs.schedule, error);
-    }
-}
-
 function renderReservationTable() {
     if (!refs.list) return;
     if (!state.reservations.length) {
-        refs.list.innerHTML = `<p class="admin-empty">No results. Try adjusting the filters.</p>`;
+        refs.list.innerHTML = `<p class="panel__empty">No results. Try adjusting the filters.</p>`;
         return;
     }
 
     const rows = state.reservations.map((reservation) => {
         const bookings = (reservation.bookings || [])
-            .map((item) => `<li>${escapeHtml(item.activityName || "-")}<br><span>${escapeHtml(item.timeSlot || "-")}</span></li>`)
+            .map((item) => `<li>${escapeHtml(item.activityName || "-")}<br><span>${escapeHtml(item.timeSlot || "-")}</span></li>`) // Map each booking to a list item
             .join("");
 
+            //table setup: ID, Contact, Email, Phone, Type, Created, Bookings, [Delete button]
         return `
         <tr data-reservation-id="${reservation.id}">
           <td>${reservation.id}</td>
@@ -188,24 +158,24 @@ function renderReservationTable() {
           <td>${formatPhone(reservation.phone)}</td>
           <td>${escapeHtml(reservation.customerType || "-")}</td>
           <td>${formatDateTime(reservation.createdAt)}</td>
-          <td><ul class="admin-booking-list">${bookings || "<li>Ingen bookinger</li>"}</ul></td>
-          <td class="admin-table__actions">
+          <td><ul class="panel__list">${bookings || "<li>No bookings</li>"}</ul></td>
+          <td class="panel__actions">
             <button type="button" class="btn btn--primary" data-action="delete">Delete</button>
           </td>
         </tr>`;
     }).join("");
 
     refs.list.innerHTML = `
-      <table class="table admin-table">
+      <table class="table panel__table">
         <thead>
           <tr>
             <th>ID</th>
-            <th>Kontakt</th>
+            <th>Contact</th>
             <th>Email</th>
-            <th>Telefon</th>
+            <th>Phone</th>
             <th>Type</th>
-            <th>Oprettet</th>
-            <th>Bookinger</th>
+            <th>Created</th>
+            <th>Bookings</th>
             <th></th>
           </tr>
         </thead>
@@ -220,26 +190,6 @@ function renderReservationTable() {
             handleDelete(row.dataset.reservationId);
         });
     });
-}
-
-function renderSchedule() {
-    if (!refs.schedule) return;
-    if (!state.schedule.length) {
-        refs.schedule.innerHTML = `<p class="admin-empty">No bookings for the selected date.</p>`;
-        return;
-    }
-
-    refs.schedule.innerHTML = state.schedule.map((entry) => `
-      <article class="admin-schedule__item">
-        <header>
-          <h3>${escapeHtml(entry.activityName || "Unknown activity")}</h3>
-          <span>${formatTimeRange(entry.startsAt, entry.endsAt)}</span>
-        </header>
-        <p>Participants: ${entry.participants}/${entry.totalParticipants || "?"}</p>
-        <p>Contact: ${escapeHtml(entry.contactName || "-")} (${escapeHtml(entry.customerType || "-")})</p>
-        <p>Reservation: #${entry.reservationId || "-"}</p>
-      </article>
-    `).join("");
 }
 
 async function handleDelete(reservationId) {
@@ -258,12 +208,12 @@ async function handleDelete(reservationId) {
 
 function renderLoading(container, message) {
     if (!container) return;
-    container.innerHTML = `<p class="admin-empty">${message}</p>`;
+    container.innerHTML = `<p class="panel__empty">${message}</p>`;
 }
 
 function renderError(container, error) {
     if (!container) return;
-    container.innerHTML = `<p class="admin-empty">${error?.message || "Something went wrong."}</p>`;
+    container.innerHTML = `<p class="panel__empty">${error?.message || "Something went wrong."}</p>`;
 }
 
 function updateStatus(message, isError = false) {
@@ -298,11 +248,6 @@ function formatDateTime(value) {
         hour: "2-digit",
         minute: "2-digit"
     });
-}
-
-function formatTimeRange(start, end) {
-    const format = (input) => input ? new Date(input).toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" }) : "?";
-    return `${format(start)} – ${format(end)}`;
 }
 
 function escapeHtml(input) {
