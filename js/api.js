@@ -114,7 +114,7 @@ export async function deleteActivity(id) {
 }
 
 // Fetch availability for a specific activity on a single day
-  export async function getAvailabilityForDay(activityId, date) {
+export async function getAvailabilityForDay(activityId, date) {
     return getAvailability(activityId, date, date, "00:00:00", "23:59:00");
 }
 
@@ -180,6 +180,14 @@ export async function getAdminReservation(reservationId) {
 
     return response.json();
 }
+
+// Compatibility helpers for existing admin views
+export const getReservations = listAdminReservations;
+export const getReservationByDate = async (date) => {
+    if (!date) return listAdminReservations();
+    return listAdminReservations({ date });
+};
+export const getReservationById = getAdminReservation;
 
 export async function deleteReservation(reservationId) {
     const response = await fetch(`${ADMIN_RESERVATIONS_URL}/${reservationId}`, {
