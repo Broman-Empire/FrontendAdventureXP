@@ -27,7 +27,7 @@ export async function mount(container) {
         <div class="frontpage-tagline">ADVENTURE · ADRENALINE · ACTION · ALIVE · ALL IN</div>
         <div class="frontpage-divider frontpage-divider--hero"></div>
         <div class="frontpage-hero-cta">
-          <h2 class="frontpage-hero-title">FEEL THE RUSH<br>HAVE SOM FUN</h2>
+          <h2 class="frontpage-hero-title">FEEL THE RUSH<br>HAVE SOME FUN</h2>
           <div class="frontpage-hero-subtext">BOOK YOUR ADVENTURE HERE</div>
           <button class="btn btn--primary btn--lg frontpage-main-book-btn">BOOK</button>
         </div>

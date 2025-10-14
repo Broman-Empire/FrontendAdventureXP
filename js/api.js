@@ -7,8 +7,6 @@ const ADMIN_RESERVATIONS_URL = `${ADMIN_BASE_URL}/reservations`;
 const ADMIN_SEARCH_URL = `${ADMIN_BASE_URL}/search`;
 const ADMIN_SCHEDULE_URL = `${ADMIN_BASE_URL}/schedule`;
 
-// TODO (backend & server-side):
-// - Check @PostMapping endpoint: /api/reservations
 
 // ---- Activity wrappers ----
 

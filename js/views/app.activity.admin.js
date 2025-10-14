@@ -8,34 +8,33 @@ import { navigation } from "../main.js";
 export async function mount(container) {
     container.innerHTML = `
     <section class="admin-activities">
-      <h1>Aktivitetsadministration</h1>
-      <p>Opret, redigér eller slet aktiviteter.</p>
+      <h1>Activity Management</h1>
+      <p>Create, edit, or delete activities.</p>
 
       <!-- Formular til at oprette ny aktivitet -->
       <div class="form-section">
-        <h3>Opret ny aktivitet</h3>
-        <input id="name" placeholder="Navn">
-        <input id="minAge" type="number" placeholder="Min. alder">
-        <input id="minParticipants" type="number" placeholder="Min. deltagere">
-        <input id="maxParticipants" type="number" placeholder="Max deltagere">
-        <input id="durationMinutes" type="number" placeholder="Varighed">
-        <input id="parallelCourts" type="number" placeholder="Parallelle baner">
+          <h3>Create new activity</h3>
+        <input id="name" placeholder="Name">
+        <input id="minAge" type="number" placeholder="Min. age">
+        <input id="minParticipants" type="number" placeholder="Min. participants">
+        <input id="maxParticipants" type="number" placeholder="Max. participants">
+        <input id="durationMinutes" type="number" placeholder="Duration (minutes)">
+        <input id="parallelCourts" type="number" placeholder="Parallel courts">
        
        
-        <h4><Required>Udstyr</Required></h4>
-        <input id="equipmentName" placeholder="Udstyrsnavn">
-        <input id="equipmentTotal" type="number" placeholder="Antal sæt">
-        <input id="equipmentUsable" type="number" placeholder="Brugbare sæt">
-
-       
-        <button id="createBtn">Opret aktivitet</button>
+          <h4><Required>Equipment</Required></h4>
+            <input id="equipmentName" placeholder="Equipment name">
+            <input id="equipmentTotal" type="number" placeholder="Total sets">
+            <input id="equipmentUsable" type="number" placeholder="Usable sets">
+    
+            <button id="createBtn">Create activity</button>
       </div>
 
       <!-- Container til aktivitets-tabel -->
       <div id="activitiesTableContainer"></div>
 
       <!-- Tilbageknap til admin.js -->
-      <button data-view="admin" class="back-btn">Tilbage</button>
+      <button data-view="admin" class="back-btn">Go back</button>
     </section>
   `;
 
@@ -60,7 +59,7 @@ export async function mount(container) {
 
         // Validering af udstyrsinput
         if (!newActivity.name) {
-            alert("Angiv et aktivitetsnavn.");
+            alert("Please enter an activity name.");
             return;
         }
 
@@ -71,22 +70,23 @@ export async function mount(container) {
             isNaN(newActivity.durationMinutes) ||
             isNaN(newActivity.parallelCourts)
         ) {
-            alert("Alle felter for aktivitet skal udfyldes korrekt.");
+            alert("All activity fields must be filled in correctly.");
             return;
         }
 
         // --- Valider udstyr, hvis angivet ---
         if (equipmentName) {
             if (isNaN(totalSets) || isNaN(usableSets)) {
-                alert("Udstyrsantal skal være udfyldt med tal.");
+                alert("Equipment quantities must be valid numbers.");
                 return;
             }
 
             if (usableSets > totalSets) {
-                alert(`Brugbare sæt (${usableSets}) kan ikke være større end totale sæt (${totalSets}).`);
+                alert(`Usable sets (${usableSets}) cannot be greater than total sets (${totalSets}).`);
                 document.getElementById("equipmentUsable").value = totalSets;
                 return;
             }
+
 
             // Hvis der er angivet udstyr, tilføj det til objektet
 
@@ -101,12 +101,12 @@ export async function mount(container) {
 
         try {
             await createActivity(newActivity);
-            alert("Aktivitet oprettet!");
+            alert("Activity created!");
             resetForm();
-            await loadActivities(); // Opdater UI
+            await loadActivities();
         } catch (err) {
-            console.error("Fejl ved oprettelse:", err);
-            alert("Kunne ikke oprette aktivitet.");
+            console.error("Error creating activity:", err);
+            alert("Could not create activity.");
         }
     });
 
@@ -137,7 +137,7 @@ async function loadActivities() {
         const activities = await getAdminActivities();
 
         if (!activities || activities.length === 0) {
-            container.innerHTML = "<p>Ingen aktiviteter fundet.</p>";
+            container.innerHTML = "<p>No activities found.</p>";
             return;
         }
 
@@ -146,14 +146,14 @@ async function loadActivities() {
       <table class="activities-table">
         <thead>
           <tr>
-            <th>ID</th>
-            <th>Navn</th>
-            <th>Min. alder</th>
-            <th>Min. deltagere</th>
-            <th>Max deltagere</th>
-            <th>Varighed</th>
-            <th>Parallel Courts</th>
-            <th>Handling</th>
+             <th>ID</th>
+            <th>Name</th>
+            <th>Min. age</th>
+            <th>Min. participants</th>
+            <th>Max. participants</th>
+            <th>Duration (min)</th>
+            <th>Parallel courts</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -167,8 +167,8 @@ async function loadActivities() {
               <td><input type="number" value="${a.durationMinutes}" data-id="${a.id}" data-field="durationMinutes"></td>
               <td><input type="number" value="${a.parallelCourts}" data-id="${a.id}" data-field="parallelCourts"></td>
               <td>
-                <button class="save-btn" data-id="${a.id}">Gem</button>
-                <button class="delete-btn" data-id="${a.id}">Slet</button>
+                <button class="save-btn" data-id="${a.id}">Save</button>
+                <button class="delete-btn" data-id="${a.id}">Delete</button>
               </td>
             </tr>
           `).join("")}
@@ -179,8 +179,8 @@ async function loadActivities() {
 
         addActivityEventListeners();
     } catch (error) {
-        console.error("Fejl da aktiviteter skulle hentes:", error);
-        container.innerHTML = `<p>Kunne ikke hente aktiviteter.</p>`;
+        console.error("Error loading activities:", error);
+        container.innerHTML = `<p>Could not load activities.</p>`;
     }
 }
 
@@ -208,10 +208,10 @@ function addActivityEventListeners() {
 
             try {
                 await updateActivity(id, patch);
-                alert("Aktivitet opdateret!");
+                alert("Activity updated!");
             } catch (err) {
-                console.error("Fejl ved opdatering:", err);
-                alert("Kunne ikke opdatere aktivitet.");
+                console.error("Error updating activity:", err);
+                alert("Could not update activity.");
             }
         });
     });
@@ -220,14 +220,14 @@ function addActivityEventListeners() {
     container.querySelectorAll(".delete-btn").forEach(btn => {
         btn.addEventListener("click", async e => {
             const id = e.target.dataset.id;
-            if (confirm("Er du sikker på, du vil slette denne aktivitet?")) {
+            if (confirm("Are you sure you want to delete this activity?")) {
                 try {
                     await deleteActivity(id);
-                    alert("Aktivitet slettet!");
+                    alert("Activity deleted!");
                     await loadActivities();
                 } catch (err) {
-                    console.error("Fejl ved sletning:", err);
-                    alert("Kunne ikke slette aktivitet.");
+                    console.error("Error deleting activity:", err);
+                    alert("Could not delete activity.");
                 }
             }
         });

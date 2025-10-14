@@ -6,11 +6,11 @@ import { navigation } from "../main.js";
 export async function mount(container) {
     container.innerHTML = `
     <section class="admin-reservation">
-    <h1>Reservationer</h1>
-    <p>Søg via telefonnummer eller vælg en dato.</p>
+    <h1>Reservations</h1>
+    <p>Get reservation by phone number or select a date</p>
     
     <div class="controls">
-        <input type="text" id="searchInput" placeholder="Indtast telefonnummer og tryk Enter">
+        <input type="text" id="searchInput" placeholder="Enter phone number and press Enter">
         <button id="searchBtn">Søg</button>
         <input type="date" id="dateFilter">
     </div>
@@ -18,18 +18,18 @@ export async function mount(container) {
     <p id="statusBox"></p>
 
     <p id="emptyState" class="empty-state">
-            Søg efter en reservation for at se resultater
+            Search for a reservation to view results
     </p>
     
     <table id="resultTable" class="result-table" style="display:none;">
         <thead>
             <tr>
                 <th>ID</th>
-                <th>Navn</th>
+                <th>Name</th>
                 <th>Email</th>
-                <th>Telefon</th>
-                <th>Kundetype</th>
-                <th>Oprettet</th>
+                <th>Phone number</th>
+                <th>Type of customer</th>
+                <th>Created</th>
                 <th>Booking(s)</th>
                 <th></th>
             </tr>
@@ -37,7 +37,7 @@ export async function mount(container) {
         <tbody></tbody>
     </table>
     
-    <button data-view="admin" class="back-btn">Tilbage til adminpanel</button>
+    <button data-view="admin" class="back-btn">Go back</button>
     </section>
     `;
 
@@ -88,7 +88,7 @@ export async function mount(container) {
     // Søg via telefonnummer
     searchBtn.addEventListener("click", async () => {
         const phone = searchInput.value.trim();
-        if (!phone) return alert("Indtast et telefonnummer!");
+        if (!phone) return alert("Enter a phone number.");
 
         // Ryd status og tom-state inden ny søgning
         statusBox.textContent = "";
@@ -97,12 +97,12 @@ export async function mount(container) {
         // Valider telefonnummer (skal være 8 cifre)
         const phoneRegex = /^\d{8}$/;
         if (!phoneRegex.test(phone)) {
-            alert("Indtast et gyldigt dansk telefonnummer (8 cifre).");
+            alert("Enter a valid Danish phone number (8 digits)");
             return;
         }
 
         searchBtn.disabled = true;
-        searchBtn.textContent = "Søger...";
+        searchBtn.textContent = "Searching...";
 
         try {
             const reservations = await searchReservationByPhone(phone);
@@ -110,15 +110,15 @@ export async function mount(container) {
 
             // Formateres nummeret til "xx xx xx xx"
             const formattedPhone = phone.replace(/(\d{2})(?=\d)/g, '$1 ').trim();
-            statusBox.textContent = `Viser resultater for telefonnummer: ${formattedPhone}`;
+            statusBox.textContent = `Showing result for phone number: ${formattedPhone}`;
 
             console.log("Reservations loaded:", reservations); // Konsol log for at sikre at reservationer bliver loaded
             searchInput.value = ""; // Nulstil søgefæltet efter succesfuld søgning
         } catch (err) {
-            alert("Fejl ved søgning: " + err.message);
+            alert("Error during search: " + err.message);
         } finally {
             searchBtn.disabled = false;
-            searchBtn.textContent = "Søg";
+            searchBtn.textContent = "Search";
         }
     });
 
@@ -135,9 +135,9 @@ export async function mount(container) {
         try {
             const schedule = await getReservationByDate(date);
             renderResults(schedule);
-            statusBox.textContent = `Viser skema for dato: ${date}`;
+            statusBox.textContent = `Displaying schedule for date: ${date}`;
         } catch (err) {
-            alert("Fejl ved hentning af schedule: " + err.message);
+            alert("Error occurred when loading schedule: " + err.message);
         } finally {
             dateFilter.disabled = false;
         }
@@ -174,7 +174,7 @@ export async function mount(container) {
         // Hvis der ikke er nogen resultater, skal tabellen forblive skjult
         if (!reservations || reservations.length === 0) {
             emptyState.style.display = "block";
-            emptyState.textContent = "Ingen resultater fundet - prøv et andet telefonnummer eller dato.";
+            emptyState.textContent = "No reservations found. Try another phone number or select a new date";
             return;
         }
 
@@ -186,7 +186,7 @@ export async function mount(container) {
         reservations.forEach(result => {
             const bookings = result.bookings
                 ?.map(b => `${b.activityName}: ${b.timeSlot}`)
-                .join("<br>") || "Ingen bookinger";
+                .join("<br>") || "No bookings";
 
             const row = document.createElement("tr");
             row.innerHTML = `
@@ -203,34 +203,35 @@ export async function mount(container) {
         <td>${formatDate(result.createdAt)}</td>
         <td>${bookings}</td>
         <td>
-          <button class="btn-save" data-id="${result.id}">Gem</button>
-          <button class="btn-delete" data-id="${result.id}">Slet</button>
+          <button class="btn-save" data-id="${result.id}">Save</button>
+          <button class="btn-delete" data-id="${result.id}">Delete</button>
         </td>
       `;
             resultBody.appendChild(row);
         });
     }
 
+    /* TODO: bruges ikke
     async function handleDeleteReservation(reservationId) {
         if (!reservationId) return;
-        if (!confirm(`Slet reservation #${reservationId}?`)) return;
+        if (!confirm(`Delete reservation #${reservationId}?`)) return;
 
         try {
             await deleteReservation(reservationId); // kalder API-wrapperen
-            alert(`Reservation #${reservationId} er slettet.`);
+            alert(`Reservation #${reservationId} is deleted.`);
             location.reload(); // eller opdatér tabellen uden reload
         } catch (err) {
-            alert("Kunne ikke slette: " + (err?.message || err));
+            alert("Could not delete: " + (err?.message || err));
         }
     }
-
+*/
 
    async function applyUpdate(reservationId, updateBody) {
         if (!reservationId) return;
         try {
             await patchReservation(reservationId, updateBody);
             
-            statusBox.textContent = `Reservation #${reservationId} er opdateret.`;
+            statusBox.textContent = `Reservation #${reservationId} is updated.`;
             setTimeout(() => statusBox.textContent = "", 2500);
 
             const phone = searchInput.value.trim();
@@ -246,18 +247,18 @@ export async function mount(container) {
             if (refreshedData) renderResults(refreshedData);
 
         } catch (err) {
-            statusBox.textContent = "Kunne ikke opdatere reservation.";
+            statusBox.textContent = "Could not update reservation.";
             console.error(err);
         }
     }
 
     async function handleDeleteReservation(reservationId) {
     if (!reservationId) return;
-    if (!confirm(`Slet reservation #${reservationId}?`)) return;
+    if (!confirm(`Delete reservation #${reservationId}?`)) return;
 
     try {
         await deleteReservation(reservationId);
-        alert(`Reservation #${reservationId} er slettet.`);
+        alert(`Reservation #${reservationId} is deleted.`);
 
         // Samme princip som ovenfor
         const phone = searchInput.value.trim();
@@ -276,7 +277,7 @@ export async function mount(container) {
         }
 
     } catch (err) {
-        alert("Kunne ikke slette: " + (err?.message || err));
+        alert("Could not delete: " + (err?.message || err));
     }
 }
 

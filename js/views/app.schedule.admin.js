@@ -8,18 +8,18 @@ const useMock =  false;
 export async function mount(container) {
     container.innerHTML = `
     <section class="admin-schedule">
-      <h1>Skema</h1>
-      <p>Vælg en dato for at se reservationer.</p>
+      <h1>Today's Schedule</h1>
+      <p>Select a date to see reservations.</p>
 
       <div class="admin-controls">
-        <label for="datePicker">Dato:</label>
+        <label for="datePicker">Date:</label>
         <input type="date" id="datePicker" />
-        <button id="loadScheduleBtn">Indlæs skema</button>
+        <button id="loadScheduleBtn">Get schedule</button>
       </div>
 
       <div id="schedule"></div>
 
-      <button data-view="admin" class="back-btn">Tilbage til Adminpanel</button>
+      <button data-view="admin" class="back-btn">Go back</button>
     </section>
   `;
 
@@ -45,13 +45,13 @@ export async function mount(container) {
 export async function loadSchedule(date) {
 
     const scheduleContainer = document.getElementById("schedule");
-    scheduleContainer.innerHTML = `<p>Indlæser skema for ${date}</p>`;
+    scheduleContainer.innerHTML = `<p>Getting schedule for: ${date}</p>`;
 
     try {
         let rows;
 
         if (useMock) {
-            console.log("Bruger mockdata i stedet for API.");
+            console.log("Using mock data instead of API.");
             rows = [
                 {
                     id: 1,
@@ -69,7 +69,7 @@ export async function loadSchedule(date) {
                 }
             ];
         } else {
-            console.log("Henter rigtig data fra API.");
+            console.log("Fetching data from API.");
             rows = await getDailySchedule(date); // Henter JSON fra backend
         }
 
@@ -79,8 +79,8 @@ export async function loadSchedule(date) {
         renderSchedule(rows); //Indsætter i html-tabel
 
     } catch (error) {
-        console.log("Fejl da reservationer skulle hentes:", error);
-        scheduleContainer.innerHTML = `<p>Kunne ikke hente reservationer :(</p>`;
+        console.log("Error occurred while loading reservations:", error);
+        scheduleContainer.innerHTML = `<p>Could not load reservations:(</p>`;
     }
 }
 
@@ -89,7 +89,7 @@ export function renderSchedule(rows) {
     const scheduleContainer = document.getElementById("schedule");
 
     if (!rows || rows.length === 0) {
-        scheduleContainer.innerHTML = `<p>Ingen reservationer fundet.</p>`;
+        scheduleContainer.innerHTML = `<p>No reservations found.</p>`;
         return;
     }
 
@@ -99,12 +99,12 @@ export function renderSchedule(rows) {
       <thead>
         <tr>
           <th>Booking ID</th>
-          <th>Aktivitetsnavn</th>
-          <th>Starttidspunkt</th>
-          <th>Sluttidspunkt</th>
-          <th>Deltagere</th>
-          <th>Kundenavn</th>
-          <th>Kapacitet</th>
+          <th>Name of activity</th>
+          <th>Start time</th>
+          <th>End time</th>
+          <th>Participants</th>
+          <th>Customer name</th>
+          <th>Capacity</th>
           
         </tr>
       </thead>

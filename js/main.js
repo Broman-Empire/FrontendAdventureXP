@@ -32,7 +32,7 @@ export function navigation(viewName) {
     if (view && typeof view.mount === "function") {
         view.mount(appContainer); // Vis den i app-containeren på index.html
     } else {
-        appContainer.innerHTML = `<p>View "${viewName}" ikke fundet :(<p>`;
+        appContainer.innerHTML = `<p>View "${viewName}" not found :(<p>`;
     }
 }
 
